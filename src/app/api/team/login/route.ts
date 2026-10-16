@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid PIN" }, { status: 401 });
   }
 
-  await createTeamSession(team.id, game.id);
+  await createTeamSession(team.id, game.id, request);
   return NextResponse.json({
     team: { id: team.id, name: team.name, leaderName: team.leaderName, balance: team.balance },
     game: { id: game.id, name: game.name, status: game.status },

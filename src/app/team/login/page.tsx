@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 export default function TeamLoginPage() {
-  const router = useRouter();
   const [teamName, setTeamName] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -15,19 +13,23 @@ export default function TeamLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const res = await fetch("/api/team/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teamName, pin }),
-    });
-    setLoading(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Login failed");
-      return;
+    try {
+      const res = await fetch("/api/team/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamName, pin }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? `Login failed (${res.status})`);
+        return;
+      }
+      window.location.assign("/team");
+    } catch {
+      setError("Could not reach the server. Is npm run dev running?");
+    } finally {
+      setLoading(false);
     }
-    router.push("/team");
-    router.refresh();
   }
 
   return (

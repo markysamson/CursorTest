@@ -6,11 +6,29 @@ const COOKIE_ADMIN = "monopoly_admin_session";
 const COOKIE_TEAM = "monopoly_team_session";
 
 function getSecret() {
-  const secret = process.env.AUTH_SECRET;
+  const secret =
+    process.env.AUTH_SECRET ??
+    (process.env.NODE_ENV === "development" ? "dev-only-insecure-secret" : undefined);
   if (!secret) {
     throw new Error("AUTH_SECRET is not configured");
   }
   return new TextEncoder().encode(secret);
+}
+
+/** Use HTTPS (or opt-in) for Secure cookies — plain http://localhost breaks login with npm start. */
+export function shouldUseSecureCookies(request?: Request): boolean {
+  if (process.env.COOKIE_SECURE === "true") return true;
+  if (process.env.COOKIE_SECURE === "false") return false;
+  if (!request) return false;
+  const forwarded = request.headers.get("x-forwarded-proto");
+  if (forwarded) {
+    return forwarded.split(",")[0]?.trim() === "https";
+  }
+  try {
+    return new URL(request.url).protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 export type AdminSession = { role: "admin" };
@@ -24,7 +42,7 @@ export async function verifyPin(pin: string, hash: string) {
   return bcrypt.compare(pin, hash);
 }
 
-export async function createAdminSession() {
+export async function createAdminSession(request?: Request) {
   const token = await new SignJWT({ role: "admin" satisfies AdminSession["role"] })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -34,12 +52,12 @@ export async function createAdminSession() {
   jar.set(COOKIE_ADMIN, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(request),
     path: "/",
   });
 }
 
-export async function createTeamSession(teamId: string, gameId: string) {
+export async function createTeamSession(teamId: string, gameId: string, request?: Request) {
   const token = await new SignJWT({
     role: "team",
     teamId,
@@ -53,7 +71,7 @@ export async function createTeamSession(teamId: string, gameId: string) {
   jar.set(COOKIE_TEAM, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(request),
     path: "/",
   });
 }

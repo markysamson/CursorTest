@@ -22,6 +22,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Default admin password (override with `ADMIN_PASSWORD` in `.env`): `monopoly-admin`
 
+For local testing, prefer **`npm run dev`** (not `npm start`). If you use a production build over **http://** and login loops back to the sign-in page, set `COOKIE_SECURE=false` in `.env` or serve over HTTPS.
+
 ## How it works
 
 1. Manager logs in, creates teams (name, leader, numeric PIN), and clicks **Start run**.
