@@ -1,6 +1,7 @@
 import { getTeamSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { distanceMeters } from "@/lib/geo";
+import { boardSetLabel } from "@/lib/board-sets";
 import { updateTeamLocation } from "@/lib/team-location";
 import { NextResponse } from "next/server";
 
@@ -14,10 +15,17 @@ export async function GET(request: Request) {
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
 
-  const [game, team, locations, ownerships, recentVisits] = await Promise.all([
-    prisma.game.findUnique({ where: { id: session.gameId } }),
+  const game = await prisma.game.findUnique({ where: { id: session.gameId } });
+  if (!game) {
+    return NextResponse.json({ error: "Session invalid" }, { status: 401 });
+  }
+
+  const [team, locations, ownerships, recentVisits] = await Promise.all([
     prisma.team.findUnique({ where: { id: session.teamId } }),
-    prisma.location.findMany({ orderBy: { boardOrder: "asc" } }),
+    prisma.location.findMany({
+      where: { boardSet: game.boardSet },
+      orderBy: { boardOrder: "asc" },
+    }),
     prisma.propertyOwnership.findMany({
       where: { gameId: session.gameId },
       include: { team: { select: { id: true, name: true } } },
@@ -30,7 +38,7 @@ export async function GET(request: Request) {
     }),
   ]);
 
-  if (!game || !team) {
+  if (!team) {
     return NextResponse.json({ error: "Session invalid" }, { status: 401 });
   }
 
@@ -84,7 +92,13 @@ export async function GET(request: Request) {
     }));
 
   return NextResponse.json({
-    game,
+    game: {
+      name: game.name,
+      status: game.status,
+      geofenceRadiusM: game.geofenceRadiusM,
+      boardSet: game.boardSet,
+      boardSetLabel: boardSetLabel(game.boardSet),
+    },
     team: {
       id: team.id,
       name: team.name,

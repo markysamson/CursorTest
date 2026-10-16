@@ -1,31 +1,41 @@
 import "dotenv/config";
 import { createPrismaClient } from "../src/lib/prisma-client";
-import { LONDON_LOCATIONS } from "../src/lib/locations-data";
+import { CITY_OF_LONDON_LOCATIONS, LONDON_LOCATIONS } from "../src/lib/locations-data";
 
 const prisma = createPrismaClient();
 
+const SETS = [
+  { boardSet: "LONDON_FULL" as const, locations: LONDON_LOCATIONS },
+  { boardSet: "CITY_OF_LONDON" as const, locations: CITY_OF_LONDON_LOCATIONS },
+];
+
 async function main() {
-  for (const loc of LONDON_LOCATIONS) {
-    await prisma.location.upsert({
-      where: { name: loc.name },
-      create: {
-        name: loc.name,
-        colorGroup: loc.colorGroup,
-        price: loc.price,
-        rent: loc.rent,
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        boardOrder: loc.boardOrder,
-      },
-      update: {
-        colorGroup: loc.colorGroup,
-        price: loc.price,
-        rent: loc.rent,
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        boardOrder: loc.boardOrder,
-      },
-    });
+  for (const { boardSet, locations } of SETS) {
+    for (const loc of locations) {
+      await prisma.location.upsert({
+        where: {
+          boardSet_name: { boardSet, name: loc.name },
+        },
+        create: {
+          boardSet,
+          name: loc.name,
+          colorGroup: loc.colorGroup,
+          price: loc.price,
+          rent: loc.rent,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          boardOrder: loc.boardOrder,
+        },
+        update: {
+          colorGroup: loc.colorGroup,
+          price: loc.price,
+          rent: loc.rent,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          boardOrder: loc.boardOrder,
+        },
+      });
+    }
   }
 
   const existingGame = await prisma.game.findFirst({ orderBy: { createdAt: "desc" } });
@@ -33,6 +43,7 @@ async function main() {
     await prisma.game.create({
       data: {
         name: "London Monopoly Run",
+        boardSet: "LONDON_FULL",
         status: "SETUP",
         startingBalance: 1500,
         geofenceRadiusM: 120,

@@ -48,7 +48,7 @@ export default function TeamLoginPage() {
           />
         </div>
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <label className="block text-sm text-cloudera-charcoal">
+          <label className="block text-sm font-semibold text-cloudera-navy">
             Team name
             <input
               className="input-field mt-1"
@@ -57,7 +57,7 @@ export default function TeamLoginPage() {
               required
             />
           </label>
-          <label className="block text-sm text-cloudera-charcoal">
+          <label className="block text-sm font-semibold text-cloudera-navy">
             PIN
             <input
               type="password"

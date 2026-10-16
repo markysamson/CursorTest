@@ -13,6 +13,11 @@ enum GameStatus {
   FINISHED
 }
 
+enum BoardSet {
+  LONDON_FULL
+  CITY_OF_LONDON
+}
+
 enum VisitType {
   PURCHASE
   RENT
@@ -22,6 +27,7 @@ enum VisitType {
 model Game {
   id                 String     @id @default(cuid())
   name               String
+  boardSet           BoardSet   @default(LONDON_FULL)
   status             GameStatus @default(SETUP)
   startingBalance    Int        @default(1500)
   geofenceRadiusM    Int        @default(120)
@@ -52,7 +58,8 @@ model Team {
 
 model Location {
   id         String   @id @default(cuid())
-  name       String   @unique
+  boardSet   BoardSet @default(LONDON_FULL)
+  name       String
   colorGroup String
   price      Int
   rent       Int
@@ -61,6 +68,8 @@ model Location {
   boardOrder Int
   ownerships PropertyOwnership[]
   visits     Visit[]
+
+  @@unique([boardSet, name])
 }
 
 model PropertyOwnership {

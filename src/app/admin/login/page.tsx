@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
           <ProductTitle title="Manager login" subtitle="Enter the admin password for this run." />
         </div>
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <label className="block text-sm text-cloudera-charcoal">
+          <label className="block text-sm font-semibold text-cloudera-navy">
             Password
             <input
               type="password"

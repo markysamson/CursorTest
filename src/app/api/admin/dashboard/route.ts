@@ -24,7 +24,12 @@ export async function GET() {
     },
   });
 
-  const locations = await prisma.location.findMany({ orderBy: { boardOrder: "asc" } });
+  const locations = game
+    ? await prisma.location.findMany({
+        where: { boardSet: game.boardSet },
+        orderBy: { boardOrder: "asc" },
+      })
+    : [];
 
   const ownershipByLocationId = new Map(
     game?.ownerships.map((o) => [o.locationId, o.team.name]) ?? [],

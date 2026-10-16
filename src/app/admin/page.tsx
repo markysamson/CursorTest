@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
+import { BOARD_SET_CONFIG, type BoardSetId } from "@/lib/board-sets";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
 import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 
@@ -11,6 +12,7 @@ type Team = { id: string; name: string; leaderName: string; balance: number };
 type Game = {
   id: string;
   name: string;
+  boardSet: BoardSetId;
   status: "SETUP" | "ACTIVE" | "FINISHED";
   startingBalance: number;
   geofenceRadiusM: number;
@@ -97,6 +99,20 @@ export default function AdminDashboardPage() {
     load();
   }
 
+  async function setBoardSet(boardSet: BoardSetId) {
+    const res = await fetch("/api/admin/game", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ boardSet }),
+    });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      alert(j.error ?? "Could not change board");
+      return;
+    }
+    load();
+  }
+
   async function removeTeam(id: string) {
     if (!confirm("Remove this team?")) return;
     await fetch(`/api/admin/teams/${id}`, { method: "DELETE" });
@@ -132,11 +148,15 @@ export default function AdminDashboardPage() {
             <span className="font-bold uppercase tracking-wide text-cloudera-orange-dark">
               {game.status}
             </span>
+            · Board:{" "}
+            <span className="font-semibold text-cloudera-navy">
+              {BOARD_SET_CONFIG[game.boardSet].label}
+            </span>
             · Geofence {game.geofenceRadiusM}m · Start balance £{game.startingBalance}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {game.status !== "ACTIVE" && (
+          {game.status === "SETUP" && (
             <button
               type="button"
               onClick={() => setGameStatus("ACTIVE")}
@@ -159,6 +179,40 @@ export default function AdminDashboardPage() {
           </button>
         </div>
       </header>
+
+      {game.status === "SETUP" && (
+        <section className="board-card mb-6 rounded-2xl p-6">
+          <h2 className="text-lg font-bold text-cloudera-navy">Choose board</h2>
+          <p className="mt-1 text-sm font-medium text-cloudera-gray">
+            Pick the route before you start the run. Teams will only see stops on the selected board.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {(Object.keys(BOARD_SET_CONFIG) as BoardSetId[]).map((id) => {
+              const cfg = BOARD_SET_CONFIG[id];
+              const selected = game.boardSet === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setBoardSet(id)}
+                  className={`rounded-2xl border p-4 text-left transition ${
+                    selected
+                      ? "border-cloudera-orange bg-cloudera-orange-soft ring-2 ring-cloudera-orange/30"
+                      : "border-cloudera-border bg-white hover:border-cloudera-blue"
+                  }`}
+                >
+                  <p className="font-bold text-cloudera-navy">{cfg.label}</p>
+                  <p className="mt-1 text-sm font-medium text-cloudera-gray">{cfg.subtitle}</p>
+                  <p className="mt-2 text-xs font-semibold text-cloudera-orange-dark">
+                    {cfg.stopCount} stops · {cfg.suggestedDuration} · £{cfg.startingBalance} start ·{" "}
+                    {cfg.geofenceRadiusM}m geofence
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="board-card board-card-accent mb-6 rounded-2xl p-6">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">

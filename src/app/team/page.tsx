@@ -34,7 +34,12 @@ type OwnedProperty = {
 };
 
 type TeamState = {
-  game: { name: string; status: string; geofenceRadiusM: number };
+  game: {
+    name: string;
+    status: string;
+    geofenceRadiusM: number;
+    boardSetLabel: string;
+  };
   team: { id: string; name: string; leaderName: string; balance: number };
   locations: LocationState[];
   ownedProperties: OwnedProperty[];
@@ -372,7 +377,9 @@ export default function TeamAppPage() {
       )}
 
       <section>
-        <h2 className="section-heading mb-2">London board ({locations.length} stops)</h2>
+        <h2 className="section-heading mb-2">
+          {game.boardSetLabel} board ({locations.length} stops)
+        </h2>
         <ul className="space-y-2">
           {locations.map((loc) => {
             const style = COLOR_GROUP_STYLES[loc.colorGroup];
@@ -409,7 +416,7 @@ export default function TeamAppPage() {
                   href={`https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="shrink-0 text-xs text-cloudera-orange underline"
+                  className="shrink-0 text-xs font-semibold text-cloudera-orange-dark underline"
                 >
                   Map
                 </a>

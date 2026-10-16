@@ -24,6 +24,24 @@ export const LONDON_LOCATIONS = [
   { name: "Mayfair", colorGroup: "dark-blue", price: 400, rent: 40, latitude: 51.5074, longitude: -0.1477, boardOrder: 22 },
 ] as const;
 
+/** Compact board centred on Liverpool Street — suited to a 2–3 hour run. */
+export const CITY_OF_LONDON_LOCATIONS = [
+  { name: "Moorgate", colorGroup: "brown", price: 80, rent: 8, latitude: 51.5183, longitude: -0.0882, boardOrder: 1 },
+  { name: "Wormwood Street", colorGroup: "brown", price: 80, rent: 8, latitude: 51.5154, longitude: -0.0822, boardOrder: 2 },
+  { name: "Bishopsgate", colorGroup: "light-blue", price: 100, rent: 10, latitude: 51.5165, longitude: -0.0795, boardOrder: 3 },
+  { name: "Lime Street", colorGroup: "light-blue", price: 100, rent: 10, latitude: 51.513, longitude: -0.0815, boardOrder: 4 },
+  { name: "Old Broad Street", colorGroup: "light-blue", price: 120, rent: 12, latitude: 51.516, longitude: -0.084, boardOrder: 5 },
+  { name: "Leadenhall Street", colorGroup: "pink", price: 140, rent: 14, latitude: 51.5127, longitude: -0.078, boardOrder: 6 },
+  { name: "St Mary Axe", colorGroup: "pink", price: 160, rent: 16, latitude: 51.5145, longitude: -0.0803, boardOrder: 7 },
+  { name: "Gracechurch Street", colorGroup: "pink", price: 140, rent: 14, latitude: 51.5136, longitude: -0.0843, boardOrder: 8 },
+  { name: "Fenchurch Street", colorGroup: "orange", price: 180, rent: 18, latitude: 51.5118, longitude: -0.0788, boardOrder: 9 },
+  { name: "Threadneedle Street", colorGroup: "orange", price: 180, rent: 18, latitude: 51.514, longitude: -0.0865, boardOrder: 10 },
+  { name: "King William Street", colorGroup: "orange", price: 200, rent: 20, latitude: 51.511, longitude: -0.0865, boardOrder: 11 },
+  { name: "Poultry", colorGroup: "red", price: 220, rent: 22, latitude: 51.5133, longitude: -0.0907, boardOrder: 12 },
+  { name: "Cannon Street", colorGroup: "red", price: 240, rent: 24, latitude: 51.5113, longitude: -0.09, boardOrder: 13 },
+  { name: "Queen Victoria Street", colorGroup: "yellow", price: 280, rent: 28, latitude: 51.5128, longitude: -0.0935, boardOrder: 14 },
+] as const;
+
 export const COLOR_GROUP_STYLES: Record<string, { bg: string; border: string; label: string }> = {
   brown: { bg: "bg-amber-900/90", border: "border-amber-950", label: "Brown" },
   "light-blue": { bg: "bg-sky-400/90", border: "border-sky-600", label: "Light blue" },
