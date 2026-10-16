@@ -1,3 +1,4 @@
+import { getUploadRoot } from "@/lib/data-paths";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { randomBytes } from "crypto";
@@ -14,7 +15,7 @@ export async function saveSelfie(file: File, gameId: string): Promise<string> {
   const ext =
     file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const name = `${Date.now()}-${randomBytes(6).toString("hex")}.${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads", gameId);
+  const dir = path.join(getUploadRoot(), gameId);
   await mkdir(dir, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(path.join(dir, name), buffer);

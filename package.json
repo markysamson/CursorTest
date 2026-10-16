@@ -2,10 +2,14 @@
   "name": "monopoly-run",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "prisma generate && next dev",
     "build": "prisma generate && prisma migrate deploy && tsx prisma/seed.ts && next build",
-    "start": "next start",
+    "start": "tsx scripts/ensure-data-dir.ts && next start -H ${HOSTNAME:-0.0.0.0} -p ${PORT:-3000}",
+    "setup:prod": "tsx scripts/ensure-data-dir.ts && prisma migrate deploy && tsx prisma/seed.ts",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",

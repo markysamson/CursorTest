@@ -35,3 +35,9 @@ For local testing, prefer **`npm run dev`** (not `npm start`). If you use a prod
 ## Tech stack
 
 Next.js (App Router), SQLite + Prisma, JWT session cookies, Tailwind CSS.
+
+## Production (Oracle Always Free VPS)
+
+For a small always-on VM with **persistent SQLite and selfies**, set `MONOPOLY_DATA_DIR` to a path on the boot volume (e.g. `/var/lib/monopoly-run`). The app stores `data.db` and `uploads/` there and listens on `0.0.0.0` for a reverse proxy.
+
+Step-by-step: **[deploy/oracle/README.md](deploy/oracle/README.md)** (systemd + Caddy + HTTPS).

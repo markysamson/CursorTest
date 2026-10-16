@@ -1,0 +1,6 @@
+# Replace run.example.com with your domain (DNS A → instance public IP).
+
+run.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}

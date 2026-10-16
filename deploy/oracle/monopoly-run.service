@@ -1,0 +1,16 @@
+[Unit]
+Description=Monopoly Run (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=monopoly
+Group=monopoly
+WorkingDirectory=/opt/monopoly-run
+EnvironmentFile=/var/lib/monopoly-run/.env
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
