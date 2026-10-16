@@ -22,10 +22,22 @@ type LocationState = {
   owner: { id: string; name: string; selfiePath: string } | null;
 };
 
+type OwnedProperty = {
+  id: string;
+  name: string;
+  colorGroup: string;
+  price: number;
+  rent: number;
+  selfiePath: string;
+  latitude: number;
+  longitude: number;
+};
+
 type TeamState = {
   game: { name: string; status: string; geofenceRadiusM: number };
-  team: { name: string; leaderName: string; balance: number };
+  team: { id: string; name: string; leaderName: string; balance: number };
   locations: LocationState[];
+  ownedProperties: OwnedProperty[];
   recentVisits: {
     visitType: string;
     amount: number;
@@ -154,8 +166,10 @@ export default function TeamAppPage() {
     );
   }
 
-  const { game, team, locations } = state;
+  const { game, team, locations, ownedProperties } = state;
   const nearby = locations.filter((l) => l.inRange);
+  const portfolioValue = ownedProperties.reduce((sum, p) => sum + p.price, 0);
+  const rentPerVisit = ownedProperties.reduce((sum, p) => sum + p.rent, 0);
 
   const mapProperties: MapPropertyMarker[] = locations.map((loc) => ({
     id: loc.id,
@@ -226,6 +240,66 @@ export default function TeamAppPage() {
           <p className="mt-2 px-1 text-xs text-emerald-100/70">
             Enable location to see your team on the map.
           </p>
+        )}
+      </section>
+
+      <section className="board-card mb-4 rounded-2xl p-4">
+        <div className="mb-3 flex items-baseline justify-between gap-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-amber-200/90">
+            Your properties
+          </h2>
+          <span className="text-xs text-emerald-100/70">
+            {ownedProperties.length} owned
+            {ownedProperties.length > 0 && (
+              <> · £{portfolioValue} portfolio · £{rentPerVisit} rent/visit</>
+            )}
+          </span>
+        </div>
+        {ownedProperties.length === 0 ? (
+          <p className="text-sm text-emerald-100/75">
+            You don&apos;t own any squares yet. Visit an unowned location, take a selfie, and buy your
+            first property.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {ownedProperties.map((prop) => {
+              const style = COLOR_GROUP_STYLES[prop.colorGroup];
+              return (
+                <li
+                  key={prop.id}
+                  className="flex items-center gap-3 rounded-xl border border-emerald-400/25 bg-emerald-950/30 p-2"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={prop.selfiePath}
+                    alt=""
+                    className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-amber-50">{prop.name}</p>
+                    <p className="text-xs text-emerald-100/75">
+                      Paid £{prop.price} · Rent £{prop.rent} when rivals visit
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span
+                      className={`rounded px-2 py-0.5 text-[10px] font-medium uppercase ${style?.bg ?? "bg-white/10"}`}
+                    >
+                      {style?.label ?? prop.colorGroup}
+                    </span>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${prop.latitude},${prop.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] text-amber-200 underline"
+                    >
+                      Directions
+                    </a>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </section>
 
@@ -308,11 +382,16 @@ export default function TeamAppPage() {
           {locations.map((loc) => {
             const style = COLOR_GROUP_STYLES[loc.colorGroup];
             const owned = !!loc.owner;
+            const isMine = loc.owner?.id === team.id;
             return (
               <li
                 key={loc.id}
                 className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-sm ${
-                  loc.inRange ? "border-amber-300/50 bg-amber-500/10" : "border-white/10 bg-black/15"
+                  loc.inRange
+                    ? "border-amber-300/50 bg-amber-500/10"
+                    : isMine
+                      ? "border-emerald-400/35 bg-emerald-950/25"
+                      : "border-white/10 bg-black/15"
                 }`}
               >
                 <div
@@ -322,10 +401,15 @@ export default function TeamAppPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{loc.name}</p>
                   <p className="text-xs text-emerald-100/70">
-                    {owned ? `Owned · ${loc.owner?.name}` : "Unowned"}
+                    {isMine ? "Your property" : owned ? `Owned · ${loc.owner?.name}` : "Unowned"}
                     {loc.distanceM != null && ` · ${loc.distanceM}m`}
                   </p>
                 </div>
+                {isMine && (
+                  <span className="shrink-0 rounded-full bg-emerald-500/25 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-100">
+                    Yours
+                  </span>
+                )}
                 <a
                   href={`https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`}
                   target="_blank"

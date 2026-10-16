@@ -70,10 +70,29 @@ export async function GET(request: Request) {
     };
   });
 
+  const ownedProperties = locationStates
+    .filter((loc) => loc.owner?.id === team.id)
+    .map((loc) => ({
+      id: loc.id,
+      name: loc.name,
+      colorGroup: loc.colorGroup,
+      price: loc.price,
+      rent: loc.rent,
+      selfiePath: loc.owner!.selfiePath,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+    }));
+
   return NextResponse.json({
     game,
-    team,
+    team: {
+      id: team.id,
+      name: team.name,
+      leaderName: team.leaderName,
+      balance: team.balance,
+    },
     locations: locationStates,
+    ownedProperties,
     recentVisits,
   });
 }
