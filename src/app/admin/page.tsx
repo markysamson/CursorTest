@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
-import { BOARD_SET_CONFIG, type BoardSetId } from "@/lib/board-sets";
+import { BOARD_SET_CONFIG, getBoardSetConfig, normalizeBoardSet, type BoardSetId } from "@/lib/board-sets";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
 import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 
@@ -133,6 +133,8 @@ export default function AdminDashboardPage() {
   }
 
   const { game, leaderboard, mapProperties, mapTeams, teamsWithoutLocation } = data;
+  const boardSet = normalizeBoardSet(game.boardSet);
+  const boardCfg = getBoardSetConfig(boardSet);
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl bg-white px-4 py-8 md:px-8">
@@ -149,9 +151,7 @@ export default function AdminDashboardPage() {
               {game.status}
             </span>
             · Board:{" "}
-            <span className="font-semibold text-cloudera-navy">
-              {BOARD_SET_CONFIG[game.boardSet].label}
-            </span>
+            <span className="font-semibold text-cloudera-navy">{boardCfg.label}</span>
             · Geofence {game.geofenceRadiusM}m · Start balance £{game.startingBalance}
           </p>
         </div>
@@ -189,7 +189,7 @@ export default function AdminDashboardPage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {(Object.keys(BOARD_SET_CONFIG) as BoardSetId[]).map((id) => {
               const cfg = BOARD_SET_CONFIG[id];
-              const selected = game.boardSet === id;
+              const selected = boardSet === id;
               return (
                 <button
                   key={id}

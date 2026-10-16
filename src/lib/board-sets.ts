@@ -29,9 +29,17 @@ export const BOARD_SET_CONFIG: Record<
   },
 };
 
-export function boardSetLabel(id: BoardSetId | string): string {
-  if (id in BOARD_SET_CONFIG) {
-    return BOARD_SET_CONFIG[id as BoardSetId].label;
+export function normalizeBoardSet(id: unknown): BoardSetId {
+  if (id === "CITY_OF_LONDON" || id === "LONDON_FULL") {
+    return id;
   }
-  return String(id);
+  return "LONDON_FULL";
+}
+
+export function getBoardSetConfig(id: unknown) {
+  return BOARD_SET_CONFIG[normalizeBoardSet(id)];
+}
+
+export function boardSetLabel(id: BoardSetId | string | undefined | null): string {
+  return getBoardSetConfig(id).label;
 }

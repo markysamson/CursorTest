@@ -1,4 +1,5 @@
 import { getAdminSession } from "@/lib/auth";
+import { normalizeBoardSet } from "@/lib/board-sets";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -24,9 +25,11 @@ export async function GET() {
     },
   });
 
+  const boardSet = game ? normalizeBoardSet(game.boardSet) : "LONDON_FULL";
+
   const locations = game
     ? await prisma.location.findMany({
-        where: { boardSet: game.boardSet },
+        where: { boardSet },
         orderBy: { boardOrder: "asc" },
       })
     : [];
@@ -79,7 +82,7 @@ export async function GET() {
       .sort((a, b) => b.balance - a.balance) ?? [];
 
   return NextResponse.json({
-    game,
+    game: game ? { ...game, boardSet } : null,
     locations,
     leaderboard,
     mapProperties,
