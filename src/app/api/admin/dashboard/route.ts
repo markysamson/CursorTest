@@ -3,90 +3,123 @@ import { normalizeBoardSet } from "@/lib/board-sets";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
+function schemaHelpMessage(error: unknown): string | null {
+  const text = error instanceof Error ? error.message : String(error);
+  if (text.includes("boardSet") || text.includes("Unknown argument")) {
+    return "Database or Prisma client is out of date. Stop the server, then run: npm run db:migrate && npx prisma generate && npm run db:seed && npm run dev";
+  }
+  return null;
+}
+
 export async function GET() {
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const game = await prisma.game.findFirst({
-    orderBy: { createdAt: "desc" },
-    include: {
-      teams: { orderBy: { name: "asc" } },
-      ownerships: {
-        include: { location: true, team: true },
-        orderBy: { purchasedAt: "desc" },
+  try {
+    const game = await prisma.game.findFirst({
+      orderBy: { createdAt: "desc" },
+      include: {
+        teams: { orderBy: { name: "asc" } },
+        ownerships: {
+          include: { location: true, team: true },
+          orderBy: { purchasedAt: "desc" },
+        },
+        visits: {
+          include: { team: true, location: true },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        },
       },
-      visits: {
-        include: { team: true, location: true },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      },
-    },
-  });
+    });
 
-  const boardSet = game ? normalizeBoardSet(game.boardSet) : "LONDON_FULL";
+    const boardSet = game ? normalizeBoardSet(game.boardSet) : "LONDON_FULL";
 
-  const locations = game
-    ? await prisma.location.findMany({
-        where: { boardSet },
-        orderBy: { boardOrder: "asc" },
-      })
-    : [];
+    const locations = game
+      ? await prisma.location.findMany({
+          where: { boardSet },
+          orderBy: { boardOrder: "asc" },
+        })
+      : [];
 
-  const ownershipByLocationId = new Map(
-    game?.ownerships.map((o) => [o.locationId, o.team.name]) ?? [],
-  );
+    const ownershipByLocationId = new Map(
+      game?.ownerships.map((o) => [o.locationId, o.team.name]) ?? [],
+    );
 
-  const mapProperties = locations.map((loc) => ({
-    id: loc.id,
-    name: loc.name,
-    latitude: loc.latitude,
-    longitude: loc.longitude,
-    colorGroup: loc.colorGroup,
-    ownerName: ownershipByLocationId.get(loc.id) ?? null,
-    price: loc.price,
-  }));
+    const mapProperties = locations.map((loc) => ({
+      id: loc.id,
+      name: loc.name,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      colorGroup: loc.colorGroup,
+      ownerName: ownershipByLocationId.get(loc.id) ?? null,
+      price: loc.price,
+    }));
 
-  const LOCATION_STALE_MS = 30 * 60 * 1000;
-  const now = Date.now();
+    const LOCATION_STALE_MS = 30 * 60 * 1000;
+    const now = Date.now();
 
-  const mapTeams =
-    game?.teams
-      .filter((t) => t.lastLatitude != null && t.lastLongitude != null)
-      .map((t) => ({
-        id: t.id,
-        name: t.name,
-        leaderName: t.leaderName,
-        latitude: t.lastLatitude as number,
-        longitude: t.lastLongitude as number,
-        updatedAt: t.lastLocationAt?.toISOString() ?? null,
-        stale:
-          !t.lastLocationAt || now - t.lastLocationAt.getTime() > LOCATION_STALE_MS,
-      })) ?? [];
+    const mapTeams =
+      game?.teams
+        .filter((t) => t.lastLatitude != null && t.lastLongitude != null)
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          leaderName: t.leaderName,
+          latitude: t.lastLatitude as number,
+          longitude: t.lastLongitude as number,
+          updatedAt: t.lastLocationAt?.toISOString() ?? null,
+          stale:
+            !t.lastLocationAt || now - t.lastLocationAt.getTime() > LOCATION_STALE_MS,
+        })) ?? [];
 
-  const teamsWithoutLocation =
-    game?.teams
-      .filter((t) => t.lastLatitude == null || t.lastLongitude == null)
-      .map((t) => ({ id: t.id, name: t.name, leaderName: t.leaderName })) ?? [];
+    const teamsWithoutLocation =
+      game?.teams
+        .filter((t) => t.lastLatitude == null || t.lastLongitude == null)
+        .map((t) => ({ id: t.id, name: t.name, leaderName: t.leaderName })) ?? [];
 
-  const leaderboard =
-    game?.teams
-      .map((t) => ({
-        id: t.id,
-        name: t.name,
-        leaderName: t.leaderName,
-        balance: t.balance,
-        propertiesOwned: game.ownerships.filter((o) => o.teamId === t.id).length,
-      }))
-      .sort((a, b) => b.balance - a.balance) ?? [];
+    const leaderboard =
+      game?.teams
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          leaderName: t.leaderName,
+          balance: t.balance,
+          propertiesOwned: game.ownerships.filter((o) => o.teamId === t.id).length,
+        }))
+        .sort((a, b) => b.balance - a.balance) ?? [];
 
-  return NextResponse.json({
-    game: game ? { ...game, boardSet } : null,
-    locations,
-    leaderboard,
-    mapProperties,
-    mapTeams,
-    teamsWithoutLocation,
-  });
+    const gamePayload = game
+      ? {
+          id: game.id,
+          name: game.name,
+          boardSet,
+          status: game.status,
+          startingBalance: game.startingBalance,
+          geofenceRadiusM: game.geofenceRadiusM,
+          createdAt: game.createdAt,
+          updatedAt: game.updatedAt,
+          teams: game.teams,
+          ownerships: game.ownerships,
+          visits: game.visits,
+        }
+      : null;
+
+    return NextResponse.json({
+      game: gamePayload,
+      locations,
+      leaderboard,
+      mapProperties,
+      mapTeams,
+      teamsWithoutLocation,
+    });
+  } catch (error) {
+    console.error("[admin/dashboard]", error);
+    const hint = schemaHelpMessage(error);
+    return NextResponse.json(
+      { error: hint ?? "Failed to load dashboard. Check server logs." },
+      { status: hint ? 503 : 500 },
+    );
+  }
 }

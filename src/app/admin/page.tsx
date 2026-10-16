@@ -58,9 +58,11 @@ export default function AdminDashboardPage() {
       return;
     }
     if (!res.ok) {
-      setError("Failed to load dashboard");
+      const j = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(j.error ?? "Failed to load dashboard");
       return;
     }
+    setError(null);
     setData(await res.json());
   }, [router]);
 
