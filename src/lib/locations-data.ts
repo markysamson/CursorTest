@@ -1,0 +1,36 @@
+/** London Monopoly board properties with approximate real-world coordinates. */
+export const LONDON_LOCATIONS = [
+  { name: "Old Kent Road", colorGroup: "brown", price: 60, rent: 6, latitude: 51.4878, longitude: -0.0634, boardOrder: 1 },
+  { name: "Whitechapel Road", colorGroup: "brown", price: 60, rent: 6, latitude: 51.5175, longitude: -0.0669, boardOrder: 2 },
+  { name: "The Angel, Islington", colorGroup: "light-blue", price: 100, rent: 10, latitude: 51.5347, longitude: -0.1058, boardOrder: 3 },
+  { name: "Euston Road", colorGroup: "light-blue", price: 100, rent: 10, latitude: 51.5282, longitude: -0.1337, boardOrder: 4 },
+  { name: "Pentonville Road", colorGroup: "light-blue", price: 120, rent: 12, latitude: 51.5315, longitude: -0.1189, boardOrder: 5 },
+  { name: "Pall Mall", colorGroup: "pink", price: 140, rent: 14, latitude: 51.5068, longitude: -0.1372, boardOrder: 6 },
+  { name: "Whitehall", colorGroup: "pink", price: 140, rent: 14, latitude: 51.5034, longitude: -0.1276, boardOrder: 7 },
+  { name: "Northumberland Avenue", colorGroup: "pink", price: 160, rent: 16, latitude: 51.5059, longitude: -0.1228, boardOrder: 8 },
+  { name: "Bow Street", colorGroup: "orange", price: 180, rent: 18, latitude: 51.5131, longitude: -0.1225, boardOrder: 9 },
+  { name: "Marlborough Street", colorGroup: "orange", price: 180, rent: 18, latitude: 51.5144, longitude: -0.1412, boardOrder: 10 },
+  { name: "Vine Street", colorGroup: "orange", price: 200, rent: 20, latitude: 51.5138, longitude: -0.1425, boardOrder: 11 },
+  { name: "The Strand", colorGroup: "red", price: 220, rent: 22, latitude: 51.5112, longitude: -0.1198, boardOrder: 12 },
+  { name: "Fleet Street", colorGroup: "red", price: 220, rent: 22, latitude: 51.5136, longitude: -0.1109, boardOrder: 13 },
+  { name: "Trafalgar Square", colorGroup: "red", price: 240, rent: 24, latitude: 51.508, longitude: -0.1281, boardOrder: 14 },
+  { name: "Leicester Square", colorGroup: "yellow", price: 260, rent: 26, latitude: 51.5103, longitude: -0.1301, boardOrder: 15 },
+  { name: "Coventry Street", colorGroup: "yellow", price: 260, rent: 26, latitude: 51.5107, longitude: -0.1325, boardOrder: 16 },
+  { name: "Piccadilly", colorGroup: "yellow", price: 280, rent: 28, latitude: 51.5098, longitude: -0.1379, boardOrder: 17 },
+  { name: "Regent Street", colorGroup: "green", price: 300, rent: 30, latitude: 51.5115, longitude: -0.1401, boardOrder: 18 },
+  { name: "Oxford Street", colorGroup: "green", price: 300, rent: 30, latitude: 51.5154, longitude: -0.1415, boardOrder: 19 },
+  { name: "Bond Street", colorGroup: "green", price: 320, rent: 32, latitude: 51.5142, longitude: -0.1494, boardOrder: 20 },
+  { name: "Park Lane", colorGroup: "dark-blue", price: 350, rent: 35, latitude: 51.5089, longitude: -0.1556, boardOrder: 21 },
+  { name: "Mayfair", colorGroup: "dark-blue", price: 400, rent: 40, latitude: 51.5074, longitude: -0.1477, boardOrder: 22 },
+] as const;
+
+export const COLOR_GROUP_STYLES: Record<string, { bg: string; border: string; label: string }> = {
+  brown: { bg: "bg-amber-900/90", border: "border-amber-950", label: "Brown" },
+  "light-blue": { bg: "bg-sky-400/90", border: "border-sky-600", label: "Light blue" },
+  pink: { bg: "bg-pink-400/90", border: "border-pink-600", label: "Pink" },
+  orange: { bg: "bg-orange-500/90", border: "border-orange-700", label: "Orange" },
+  red: { bg: "bg-red-600/90", border: "border-red-800", label: "Red" },
+  yellow: { bg: "bg-yellow-400/90", border: "border-yellow-600", label: "Yellow" },
+  green: { bg: "bg-emerald-600/90", border: "border-emerald-800", label: "Green" },
+  "dark-blue": { bg: "bg-blue-800/90", border: "border-blue-950", label: "Dark blue" },
+};
