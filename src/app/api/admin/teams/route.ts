@@ -21,11 +21,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
   }
 
-  let game = await prisma.game.findFirst({ orderBy: { createdAt: "desc" } });
+  const game = await prisma.game.findFirst({ orderBy: { createdAt: "desc" } });
   if (!game) {
-    game = await prisma.game.create({
-      data: { name: "London Monopoly Run", startingBalance: 1500 },
-    });
+    return NextResponse.json({ error: "Create a new game from the manager console first." }, { status: 404 });
+  }
+  if (game.status === "FINISHED") {
+    return NextResponse.json(
+      { error: "This run has ended. Create a new game before adding teams." },
+      { status: 409 },
+    );
   }
 
   const pinHash = await hashPin(parsed.data.pin);

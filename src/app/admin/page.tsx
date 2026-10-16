@@ -49,6 +49,7 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [teamForm, setTeamForm] = useState({ name: "", leaderName: "", pin: "" });
   const [busy, setBusy] = useState(false);
+  const [newGameBoard, setNewGameBoard] = useState<BoardSetId>("LONDON_FULL");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/dashboard");
@@ -96,6 +97,25 @@ export default function AdminDashboardPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    load();
+  }
+
+  async function createNewGame() {
+    if (!confirm("Start a fresh game? Final scores for this run stay in the history below.")) {
+      return;
+    }
+    setBusy(true);
+    const res = await fetch("/api/admin/game", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ boardSet: newGameBoard }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      alert(j.error ?? "Could not create game");
+      return;
+    }
     load();
   }
 
@@ -174,11 +194,63 @@ export default function AdminDashboardPage() {
               End run &amp; show final scores
             </button>
           )}
+          {game.status === "FINISHED" && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void createNewGame()}
+              className="btn-primary rounded-xl px-4 py-2 text-sm disabled:opacity-60"
+            >
+              Create new game
+            </button>
+          )}
           <button type="button" onClick={logout} className="btn-secondary rounded-xl px-4 py-2 text-sm">
             Log out
           </button>
         </div>
       </header>
+
+      {game.status === "FINISHED" && (
+        <section className="board-card mb-6 rounded-2xl border-cloudera-blue/30 bg-cloudera-blue-soft p-6">
+          <h2 className="text-lg font-bold text-cloudera-navy">Run complete</h2>
+          <p className="mt-1 text-sm font-medium text-cloudera-gray">
+            Final scores are below. Choose a board for the next run, then create a new game to add teams
+            and start again.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {(Object.keys(BOARD_SET_CONFIG) as BoardSetId[]).map((id) => {
+              const cfg = BOARD_SET_CONFIG[id];
+              const selected = newGameBoard === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setNewGameBoard(id)}
+                  className={`rounded-2xl border p-4 text-left transition ${
+                    selected
+                      ? "border-cloudera-orange bg-white ring-2 ring-cloudera-orange/30"
+                      : "border-cloudera-border bg-white/80 hover:border-cloudera-blue"
+                  }`}
+                >
+                  <p className="font-bold text-cloudera-navy">{cfg.label}</p>
+                  <p className="mt-1 text-sm font-medium text-cloudera-gray">{cfg.subtitle}</p>
+                  <p className="mt-2 text-xs font-semibold text-cloudera-orange-dark">
+                    {cfg.stopCount} stops · {cfg.suggestedDuration}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void createNewGame()}
+            className="btn-primary mt-4 rounded-xl px-5 py-2.5 text-sm disabled:opacity-60"
+          >
+            {busy ? "Creating…" : "Create new game with selected board"}
+          </button>
+        </section>
+      )}
 
       {game.status === "SETUP" && (
         <section className="board-card mb-6 rounded-2xl p-6">
@@ -240,7 +312,15 @@ export default function AdminDashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-cloudera-navy">Create team</h2>
+          <h2 className="text-lg font-bold text-cloudera-navy">
+            {game.status === "FINISHED" ? "Teams (final run)" : "Create team"}
+          </h2>
+          {game.status === "FINISHED" && (
+            <p className="mt-1 text-sm font-medium text-cloudera-gray">
+              Create a new game above to register teams for the next run.
+            </p>
+          )}
+          {game.status !== "FINISHED" && (
           <form onSubmit={createTeam} className="mt-4 grid gap-3 sm:grid-cols-2">
             <input
               placeholder="Team name"
@@ -266,12 +346,13 @@ export default function AdminDashboardPage() {
             />
             <button
               type="submit"
-              disabled={busy || game.status === "FINISHED"}
+              disabled={busy}
               className="btn-primary rounded-xl py-2 text-sm sm:col-span-2 disabled:opacity-50"
             >
               Add team
             </button>
           </form>
+          )}
           <ul className="mt-6 space-y-2">
             {game.teams.map((t) => (
               <li
@@ -282,13 +363,15 @@ export default function AdminDashboardPage() {
                   <p className="font-semibold text-cloudera-navy">{t.name}</p>
                   <p className="font-medium text-cloudera-gray">Leader: {t.leaderName} · £{t.balance}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeTeam(t.id)}
-                  className="text-xs text-red-600 hover:text-red-700"
-                >
-                  Remove
-                </button>
+                {game.status !== "FINISHED" && (
+                  <button
+                    type="button"
+                    onClick={() => removeTeam(t.id)}
+                    className="text-xs text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                )}
               </li>
             ))}
           </ul>

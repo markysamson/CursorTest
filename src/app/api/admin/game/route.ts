@@ -12,6 +12,51 @@ const patchSchema = z.object({
   boardSet: z.enum(["LONDON_FULL", "CITY_OF_LONDON"]).optional(),
 });
 
+const createSchema = z.object({
+  boardSet: z.enum(["LONDON_FULL", "CITY_OF_LONDON"]).optional(),
+  name: z.string().min(2).max(80).optional(),
+});
+
+async function getLatestGame() {
+  return prisma.game.findFirst({ orderBy: { createdAt: "desc" } });
+}
+
+export async function POST(request: Request) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const json = await request.json().catch(() => null);
+  const parsed = createSchema.safeParse(json ?? {});
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
+
+  const current = await getLatestGame();
+  if (current && current.status !== "FINISHED") {
+    return NextResponse.json(
+      { error: "End the current run before creating a new game." },
+      { status: 409 },
+    );
+  }
+
+  const boardSet = (parsed.data.boardSet ?? "LONDON_FULL") as BoardSetId;
+  const cfg = BOARD_SET_CONFIG[boardSet];
+
+  const game = await prisma.game.create({
+    data: {
+      name: parsed.data.name ?? `${cfg.label} Monopoly Run`,
+      boardSet,
+      status: "SETUP",
+      startingBalance: cfg.startingBalance,
+      geofenceRadiusM: cfg.geofenceRadiusM,
+    },
+  });
+
+  return NextResponse.json({ game });
+}
+
 export async function PATCH(request: Request) {
   const session = await getAdminSession();
   if (!session) {
@@ -24,7 +69,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  let game = await prisma.game.findFirst({ orderBy: { createdAt: "desc" } });
+  let game = await getLatestGame();
   if (!game) {
     const boardSet = (parsed.data.boardSet ?? "LONDON_FULL") as BoardSetId;
     const cfg = BOARD_SET_CONFIG[boardSet];

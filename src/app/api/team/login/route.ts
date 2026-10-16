@@ -19,6 +19,12 @@ export async function POST(request: Request) {
   if (!game) {
     return NextResponse.json({ error: "No active run configured" }, { status: 404 });
   }
+  if (game.status === "FINISHED") {
+    return NextResponse.json(
+      { error: "This run has ended. Ask your manager to create a new game." },
+      { status: 403 },
+    );
+  }
 
   const team = await prisma.team.findFirst({
     where: {
