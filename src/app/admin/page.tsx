@@ -38,6 +38,7 @@ type Dashboard = {
   leaderboard: (Team & { propertiesOwned: number })[];
   mapProperties: MapPropertyMarker[];
   mapTeams: MapTeamMarker[];
+  teamsWithoutLocation: { id: string; name: string; leaderName: string }[];
 };
 
 export default function AdminDashboardPage() {
@@ -115,7 +116,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const { game, leaderboard, mapProperties, mapTeams } = data;
+  const { game, leaderboard, mapProperties, mapTeams, teamsWithoutLocation } = data;
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl px-4 py-8 md:px-8">
@@ -175,6 +176,13 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-80 md:h-[28rem]" />
+        {teamsWithoutLocation.length > 0 && (
+          <p className="mt-3 text-xs text-amber-100/90">
+            No GPS yet:{" "}
+            {teamsWithoutLocation.map((t) => `${t.name} (${t.leaderName})`).join(", ")}. Team leaders
+            must open the team app, allow location, and see a GPS lock — then refresh every ~12s.
+          </p>
+        )}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">

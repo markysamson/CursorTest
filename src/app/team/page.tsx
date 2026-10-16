@@ -52,7 +52,7 @@ export default function TeamAppPage() {
   const loadState = useCallback(async () => {
     const qs =
       geo != null ? `?lat=${geo.latitude}&lng=${geo.longitude}` : "";
-    const res = await fetch(`/api/team/state${qs}`);
+    const res = await fetch(`/api/team/state${qs}`, { credentials: "same-origin" });
     if (res.status === 401) {
       router.replace("/team/login");
       return;
@@ -72,23 +72,28 @@ export default function TeamAppPage() {
   }, [loadState]);
 
   useEffect(() => {
-    if (!geo) return;
+    if (geo == null) return;
+    const { latitude, longitude } = geo;
     let cancelled = false;
-    const send = () => {
+    const send = async () => {
       if (cancelled) return;
-      void fetch("/api/team/location", {
+      const res = await fetch("/api/team/location", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude: geo.latitude, longitude: geo.longitude }),
+        body: JSON.stringify({ latitude, longitude }),
       });
+      if (!res.ok && !cancelled) {
+        console.warn("Could not report team location to manager map", await res.text());
+      }
     };
-    send();
-    const t = window.setInterval(send, 12000);
+    void send();
+    const t = window.setInterval(() => void send(), 12000);
     return () => {
       cancelled = true;
       window.clearInterval(t);
     };
-  }, [geo]);
+  }, [geo?.latitude, geo?.longitude]);
 
   async function performCheckIn(locationId: string, selfie?: File) {
     if (!geo) {

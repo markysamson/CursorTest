@@ -40,14 +40,12 @@ export async function GET() {
     price: loc.price,
   }));
 
+  const LOCATION_STALE_MS = 30 * 60 * 1000;
+  const now = Date.now();
+
   const mapTeams =
     game?.teams
-      .filter(
-        (t) =>
-          t.lastLatitude != null &&
-          t.lastLongitude != null &&
-          t.lastLocationAt != null,
-      )
+      .filter((t) => t.lastLatitude != null && t.lastLongitude != null)
       .map((t) => ({
         id: t.id,
         name: t.name,
@@ -55,7 +53,14 @@ export async function GET() {
         latitude: t.lastLatitude as number,
         longitude: t.lastLongitude as number,
         updatedAt: t.lastLocationAt?.toISOString() ?? null,
+        stale:
+          !t.lastLocationAt || now - t.lastLocationAt.getTime() > LOCATION_STALE_MS,
       })) ?? [];
+
+  const teamsWithoutLocation =
+    game?.teams
+      .filter((t) => t.lastLatitude == null || t.lastLongitude == null)
+      .map((t) => ({ id: t.id, name: t.name, leaderName: t.leaderName })) ?? [];
 
   const leaderboard =
     game?.teams
@@ -68,5 +73,12 @@ export async function GET() {
       }))
       .sort((a, b) => b.balance - a.balance) ?? [];
 
-  return NextResponse.json({ game, locations, leaderboard, mapProperties, mapTeams });
+  return NextResponse.json({
+    game,
+    locations,
+    leaderboard,
+    mapProperties,
+    mapTeams,
+    teamsWithoutLocation,
+  });
 }

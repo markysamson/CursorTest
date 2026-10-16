@@ -1,6 +1,7 @@
 import { getTeamSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { distanceMeters } from "@/lib/geo";
+import { updateTeamLocation } from "@/lib/team-location";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -31,6 +32,14 @@ export async function GET(request: Request) {
 
   if (!game || !team) {
     return NextResponse.json({ error: "Session invalid" }, { status: 401 });
+  }
+
+  if (lat != null && lng != null) {
+    const latitude = Number(lat);
+    const longitude = Number(lng);
+    if (!Number.isNaN(latitude) && !Number.isNaN(longitude)) {
+      await updateTeamLocation(session.teamId, latitude, longitude);
+    }
   }
 
   const ownershipByLocation = new Map(ownerships.map((o) => [o.locationId, o]));
