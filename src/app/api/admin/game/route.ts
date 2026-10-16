@@ -1,8 +1,20 @@
 import { getAdminSession } from "@/lib/auth";
 import { BOARD_SET_CONFIG, BOARD_SET_IDS, type BoardSetId } from "@/lib/board-sets";
 import { prisma } from "@/lib/db";
+import {
+  boardSetPrismaOutOfSyncMessage,
+  prismaSchemaHelpMessage,
+} from "@/lib/prisma-schema-health";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
+function prismaSyncResponse() {
+  const message = boardSetPrismaOutOfSyncMessage();
+  if (!message) {
+    return null;
+  }
+  return NextResponse.json({ error: message }, { status: 503 });
+}
 
 const patchSchema = z.object({
   status: z.enum(["SETUP", "ACTIVE", "FINISHED"]).optional(),
@@ -41,20 +53,34 @@ export async function POST(request: Request) {
     );
   }
 
+  const syncError = prismaSyncResponse();
+  if (syncError) {
+    return syncError;
+  }
+
   const boardSet = (parsed.data.boardSet ?? "LONDON_FULL") as BoardSetId;
   const cfg = BOARD_SET_CONFIG[boardSet];
 
-  const game = await prisma.game.create({
-    data: {
-      name: parsed.data.name ?? `${cfg.label} Monopoly Run`,
-      boardSet,
-      status: "SETUP",
-      startingBalance: cfg.startingBalance,
-      geofenceRadiusM: cfg.geofenceRadiusM,
-    },
-  });
+  try {
+    const game = await prisma.game.create({
+      data: {
+        name: parsed.data.name ?? `${cfg.label} Monopoly Run`,
+        boardSet,
+        status: "SETUP",
+        startingBalance: cfg.startingBalance,
+        geofenceRadiusM: cfg.geofenceRadiusM,
+      },
+    });
 
-  return NextResponse.json({ game });
+    return NextResponse.json({ game });
+  } catch (error) {
+    console.error("[admin/game POST]", error);
+    const hint = prismaSchemaHelpMessage(error);
+    return NextResponse.json(
+      { error: hint ?? "Could not create game. Check server logs." },
+      { status: hint ? 503 : 500 },
+    );
+  }
 }
 
 export async function PATCH(request: Request) {
@@ -69,20 +95,34 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
+  const syncError = prismaSyncResponse();
+  if (syncError) {
+    return syncError;
+  }
+
   let game = await getLatestGame();
   if (!game) {
     const boardSet = (parsed.data.boardSet ?? "LONDON_FULL") as BoardSetId;
     const cfg = BOARD_SET_CONFIG[boardSet];
-    game = await prisma.game.create({
-      data: {
-        name: parsed.data.name ?? cfg.label + " Monopoly Run",
-        boardSet,
-        startingBalance: parsed.data.startingBalance ?? cfg.startingBalance,
-        geofenceRadiusM: parsed.data.geofenceRadiusM ?? cfg.geofenceRadiusM,
-        status: parsed.data.status,
-      },
-    });
-    return NextResponse.json({ game });
+    try {
+      game = await prisma.game.create({
+        data: {
+          name: parsed.data.name ?? cfg.label + " Monopoly Run",
+          boardSet,
+          startingBalance: parsed.data.startingBalance ?? cfg.startingBalance,
+          geofenceRadiusM: parsed.data.geofenceRadiusM ?? cfg.geofenceRadiusM,
+          status: parsed.data.status,
+        },
+      });
+      return NextResponse.json({ game });
+    } catch (error) {
+      console.error("[admin/game PATCH create]", error);
+      const hint = prismaSchemaHelpMessage(error);
+      return NextResponse.json(
+        { error: hint ?? "Could not create game. Check server logs." },
+        { status: hint ? 503 : 500 },
+      );
+    }
   }
 
   const data = { ...parsed.data };
@@ -113,9 +153,18 @@ export async function PATCH(request: Request) {
     });
   }
 
-  const updated = await prisma.game.update({
-    where: { id: game.id },
-    data,
-  });
-  return NextResponse.json({ game: updated });
+  try {
+    const updated = await prisma.game.update({
+      where: { id: game.id },
+      data,
+    });
+    return NextResponse.json({ game: updated });
+  } catch (error) {
+    console.error("[admin/game PATCH]", error);
+    const hint = prismaSchemaHelpMessage(error);
+    return NextResponse.json(
+      { error: hint ?? "Could not update game. Check server logs." },
+      { status: hint ? 503 : 500 },
+    );
+  }
 }

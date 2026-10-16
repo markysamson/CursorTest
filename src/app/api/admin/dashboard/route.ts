@@ -1,15 +1,8 @@
 import { getAdminSession } from "@/lib/auth";
 import { normalizeBoardSet } from "@/lib/board-sets";
 import { prisma } from "@/lib/db";
+import { prismaSchemaHelpMessage } from "@/lib/prisma-schema-health";
 import { NextResponse } from "next/server";
-
-function schemaHelpMessage(error: unknown): string | null {
-  const text = error instanceof Error ? error.message : String(error);
-  if (text.includes("boardSet") || text.includes("Unknown argument")) {
-    return "Database or Prisma client is out of date. Stop the server, then run: npm run db:migrate && npx prisma generate && npm run db:seed && npm run dev";
-  }
-  return null;
-}
 
 export async function GET() {
   const session = await getAdminSession();
@@ -116,7 +109,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[admin/dashboard]", error);
-    const hint = schemaHelpMessage(error);
+    const hint = prismaSchemaHelpMessage(error);
     return NextResponse.json(
       { error: hint ?? "Failed to load dashboard. Check server logs." },
       { status: hint ? 503 : 500 },
