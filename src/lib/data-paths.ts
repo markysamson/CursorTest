@@ -12,7 +12,7 @@ function resolveFileDatabaseUrl(url: string): string {
   return `${prefix}${path.join(process.cwd(), raw)}`;
 }
 
-/** Persistent state directory on VPS (e.g. Oracle Always Free: `/var/lib/monopoly-run`). */
+/** Persistent state directory on EC2/VPS (e.g. `/var/lib/monopoly-run`). */
 export function getMonopolyDataDir(): string | null {
   const raw = process.env.MONOPOLY_DATA_DIR?.trim();
   if (!raw) {
