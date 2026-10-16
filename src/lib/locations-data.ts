@@ -42,6 +42,24 @@ export const CITY_OF_LONDON_LOCATIONS = [
   { name: "Queen Victoria Street", colorGroup: "yellow", price: 280, rent: 28, latitude: 51.5128, longitude: -0.0935, boardOrder: 14 },
 ] as const;
 
+/** Market town board — compact centre, ~2–3 hours on foot. */
+export const SAFFRON_WALDEN_LOCATIONS = [
+  { name: "Radwinter Road", colorGroup: "brown", price: 80, rent: 8, latitude: 52.0245, longitude: 0.252, boardOrder: 1 },
+  { name: "Debden Road", colorGroup: "brown", price: 80, rent: 8, latitude: 52.0262, longitude: 0.25, boardOrder: 2 },
+  { name: "Newport", colorGroup: "light-blue", price: 100, rent: 10, latitude: 52.0258, longitude: 0.2318, boardOrder: 3 },
+  { name: "Audley Road", colorGroup: "light-blue", price: 100, rent: 10, latitude: 52.0202, longitude: 0.2345, boardOrder: 4 },
+  { name: "Museum Street", colorGroup: "light-blue", price: 120, rent: 12, latitude: 52.0221, longitude: 0.237, boardOrder: 5 },
+  { name: "George Street", colorGroup: "pink", price: 140, rent: 14, latitude: 52.0242, longitude: 0.2388, boardOrder: 6 },
+  { name: "Myddleton Place", colorGroup: "pink", price: 140, rent: 14, latitude: 52.0226, longitude: 0.2378, boardOrder: 7 },
+  { name: "Castle Street", colorGroup: "pink", price: 160, rent: 16, latitude: 52.0239, longitude: 0.2362, boardOrder: 8 },
+  { name: "King Street", colorGroup: "orange", price: 180, rent: 18, latitude: 52.0223, longitude: 0.2392, boardOrder: 9 },
+  { name: "High Street", colorGroup: "orange", price: 180, rent: 18, latitude: 52.0229, longitude: 0.2412, boardOrder: 10 },
+  { name: "Bridge Street", colorGroup: "orange", price: 200, rent: 20, latitude: 52.0215, longitude: 0.2425, boardOrder: 11 },
+  { name: "Market Square", colorGroup: "red", price: 220, rent: 22, latitude: 52.0234, longitude: 0.2408, boardOrder: 12 },
+  { name: "Abbey Lane", colorGroup: "red", price: 240, rent: 24, latitude: 52.0248, longitude: 0.2442, boardOrder: 13 },
+  { name: "Common Hill", colorGroup: "yellow", price: 280, rent: 28, latitude: 52.0255, longitude: 0.2468, boardOrder: 14 },
+] as const;
+
 export const COLOR_GROUP_STYLES: Record<string, { bg: string; border: string; label: string }> = {
   brown: { bg: "bg-amber-900/90", border: "border-amber-950", label: "Brown" },
   "light-blue": { bg: "bg-sky-400/90", border: "border-sky-600", label: "Light blue" },

@@ -16,6 +16,7 @@ enum GameStatus {
 enum BoardSet {
   LONDON_FULL
   CITY_OF_LONDON
+  SAFFRON_WALDEN
 }
 
 enum VisitType {

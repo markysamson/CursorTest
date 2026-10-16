@@ -1,12 +1,17 @@
 import "dotenv/config";
 import { createPrismaClient } from "../src/lib/prisma-client";
-import { CITY_OF_LONDON_LOCATIONS, LONDON_LOCATIONS } from "../src/lib/locations-data";
+import {
+  CITY_OF_LONDON_LOCATIONS,
+  LONDON_LOCATIONS,
+  SAFFRON_WALDEN_LOCATIONS,
+} from "../src/lib/locations-data";
 
 const prisma = createPrismaClient();
 
 const SETS = [
   { boardSet: "LONDON_FULL" as const, locations: LONDON_LOCATIONS },
   { boardSet: "CITY_OF_LONDON" as const, locations: CITY_OF_LONDON_LOCATIONS },
+  { boardSet: "SAFFRON_WALDEN" as const, locations: SAFFRON_WALDEN_LOCATIONS },
 ];
 
 async function main() {

@@ -1,4 +1,6 @@
-export type BoardSetId = "LONDON_FULL" | "CITY_OF_LONDON";
+export const BOARD_SET_IDS = ["LONDON_FULL", "CITY_OF_LONDON", "SAFFRON_WALDEN"] as const;
+
+export type BoardSetId = (typeof BOARD_SET_IDS)[number];
 
 export const BOARD_SET_CONFIG: Record<
   BoardSetId,
@@ -27,11 +29,19 @@ export const BOARD_SET_CONFIG: Record<
     suggestedDuration: "2–3 hours",
     stopCount: 14,
   },
+  SAFFRON_WALDEN: {
+    label: "Saffron Walden",
+    subtitle: "14-stop Essex market town trail from Market Square",
+    startingBalance: 1200,
+    geofenceRadiusM: 100,
+    suggestedDuration: "2–3 hours",
+    stopCount: 14,
+  },
 };
 
 export function normalizeBoardSet(id: unknown): BoardSetId {
-  if (id === "CITY_OF_LONDON" || id === "LONDON_FULL") {
-    return id;
+  if (typeof id === "string" && id in BOARD_SET_CONFIG) {
+    return id as BoardSetId;
   }
   return "LONDON_FULL";
 }

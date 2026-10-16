@@ -1,5 +1,5 @@
 import { getAdminSession } from "@/lib/auth";
-import { BOARD_SET_CONFIG, type BoardSetId } from "@/lib/board-sets";
+import { BOARD_SET_CONFIG, BOARD_SET_IDS, type BoardSetId } from "@/lib/board-sets";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -9,11 +9,11 @@ const patchSchema = z.object({
   name: z.string().min(2).max(80).optional(),
   startingBalance: z.number().int().min(100).max(100000).optional(),
   geofenceRadiusM: z.number().int().min(30).max(500).optional(),
-  boardSet: z.enum(["LONDON_FULL", "CITY_OF_LONDON"]).optional(),
+  boardSet: z.enum(BOARD_SET_IDS).optional(),
 });
 
 const createSchema = z.object({
-  boardSet: z.enum(["LONDON_FULL", "CITY_OF_LONDON"]).optional(),
+  boardSet: z.enum(BOARD_SET_IDS).optional(),
   name: z.string().min(2).max(80).optional(),
 });
 
