@@ -132,7 +132,7 @@ export function RunMap({
 }
 
 function TeamMarker({ team: t, teams }: { team: MapTeamMarker; teams: MapTeamMarker[] }) {
-  const color = t.isSelf ? "#F96702" : teamColor(t.id, teams);
+  const color = t.isSelf ? "#C2410C" : teamColor(t.id, teams);
   return (
     <CircleMarker
       center={[t.latitude, t.longitude]}
@@ -148,7 +148,7 @@ function TeamMarker({ team: t, teams }: { team: MapTeamMarker; teams: MapTeamMar
         <div className="text-sm text-slate-900">
           <p className="font-semibold">{t.name}</p>
           {t.leaderName && <p className="text-xs">Leader: {t.leaderName}</p>}
-          {t.isSelf && <p className="text-xs font-medium text-[#F96702]">Your team</p>}
+          {t.isSelf && <p className="text-xs font-bold text-[#7C2D12]">Your team</p>}
           {t.updatedAt && (
             <p className="text-xs text-slate-500">
               Updated {new Date(t.updatedAt).toLocaleTimeString()}

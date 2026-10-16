@@ -19,7 +19,8 @@ export type MapTeamMarker = {
 };
 
 export const TEAM_MARKER_COLORS = [
-  "#f97316",
+  "#C2410C",
+  "#1E4976",
   "#3b82f6",
   "#a855f7",
   "#ef4444",

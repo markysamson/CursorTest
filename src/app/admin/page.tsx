@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
 
   if (!data) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-body-muted">
+      <main className="flex min-h-screen items-center justify-center font-medium text-cloudera-gray">
         {error ?? "Loading manager console…"}
       </main>
     );
@@ -123,13 +123,13 @@ export default function AdminDashboardPage() {
       <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-cloudera-border pb-6">
         <div>
           <ClouderaLogo href="/" size="sm" />
-          <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-cloudera-orange">
+          <p className="mt-3 text-xs font-bold uppercase tracking-widest text-cloudera-blue">
             Manager console
           </p>
-          <h1 className="text-3xl font-bold text-cloudera-charcoal">{game.name}</h1>
-          <p className="text-sm text-body-muted">
+          <h1 className="text-3xl font-bold text-cloudera-navy">{game.name}</h1>
+          <p className="text-sm font-medium text-cloudera-gray">
             Status:{" "}
-            <span className="font-semibold uppercase tracking-wide text-cloudera-orange">
+            <span className="font-bold uppercase tracking-wide text-cloudera-orange-dark">
               {game.status}
             </span>
             · Geofence {game.geofenceRadiusM}m · Start balance £{game.startingBalance}
@@ -163,20 +163,20 @@ export default function AdminDashboardPage() {
       <section className="board-card board-card-accent mb-6 rounded-2xl p-6">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 className="text-lg font-semibold text-cloudera-charcoal">Live map</h2>
-            <p className="text-sm text-body-muted">
+            <h2 className="text-lg font-bold text-cloudera-navy">Live map</h2>
+            <p className="text-sm font-medium text-cloudera-gray">
               Coloured dots are Monopoly properties; larger circles are team leaders&apos; latest GPS
               positions (updates when teams are logged in on mobile).
             </p>
           </div>
-          <p className="text-xs text-body-muted">
+          <p className="text-xs font-medium text-cloudera-gray">
             {mapTeams.length} team{mapTeams.length === 1 ? "" : "s"} on map · {mapProperties.length}{" "}
             properties
           </p>
         </div>
         <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-80 md:h-[28rem]" />
         {teamsWithoutLocation.length > 0 && (
-          <p className="mt-3 text-xs text-cloudera-orange">
+          <p className="mt-3 text-xs font-semibold text-cloudera-orange-dark">
             No GPS yet:{" "}
             {teamsWithoutLocation.map((t) => `${t.name} (${t.leaderName})`).join(", ")}. Team leaders
             must open the team app, allow location, and see a GPS lock — then refresh every ~12s.
@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-cloudera-charcoal">Create team</h2>
+          <h2 className="text-lg font-bold text-cloudera-navy">Create team</h2>
           <form onSubmit={createTeam} className="mt-4 grid gap-3 sm:grid-cols-2">
             <input
               placeholder="Team name"
@@ -225,8 +225,8 @@ export default function AdminDashboardPage() {
                 className="flex items-center justify-between rounded-xl border border-cloudera-border bg-cloudera-muted/60 px-3 py-2 text-sm"
               >
                 <div>
-                  <p className="font-medium text-cloudera-charcoal">{t.name}</p>
-                  <p className="text-body-muted">Leader: {t.leaderName} · £{t.balance}</p>
+                  <p className="font-semibold text-cloudera-navy">{t.name}</p>
+                  <p className="font-medium text-cloudera-gray">Leader: {t.leaderName} · £{t.balance}</p>
                 </div>
                 <button
                   type="button"
@@ -241,7 +241,7 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-cloudera-charcoal">
+          <h2 className="text-lg font-bold text-cloudera-navy">
             {game.status === "FINISHED" ? "Final scores" : "Live leaderboard"}
           </h2>
           <ol className="mt-4 space-y-2">
@@ -251,17 +251,17 @@ export default function AdminDashboardPage() {
                 className="flex items-center justify-between rounded-xl border border-cloudera-border bg-cloudera-muted/60 px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cloudera-orange-soft text-sm font-bold text-cloudera-orange">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cloudera-blue-soft text-sm font-bold text-cloudera-navy">
                     {i + 1}
                   </span>
                   <div>
-                    <p className="font-semibold text-cloudera-charcoal">{t.name}</p>
-                    <p className="text-xs text-body-muted">
+                    <p className="font-semibold text-cloudera-navy">{t.name}</p>
+                    <p className="text-xs font-medium text-cloudera-gray">
                       {t.propertiesOwned} properties · {t.leaderName}
                     </p>
                   </div>
                 </div>
-                <p className="text-lg font-bold text-cloudera-orange">£{t.balance}</p>
+                <p className="text-lg font-bold text-cloudera-orange-dark">£{t.balance}</p>
               </li>
             ))}
           </ol>
@@ -270,10 +270,10 @@ export default function AdminDashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-cloudera-charcoal">Property map</h2>
+          <h2 className="text-lg font-bold text-cloudera-navy">Property map</h2>
           <ul className="mt-4 max-h-96 space-y-2 overflow-y-auto text-sm">
             {game.ownerships.length === 0 && (
-              <p className="text-body-muted">No properties purchased yet.</p>
+              <p className="font-medium text-cloudera-gray">No properties purchased yet.</p>
             )}
             {game.ownerships.map((o) => {
               const style = COLOR_GROUP_STYLES[o.location.colorGroup];
@@ -289,8 +289,8 @@ export default function AdminDashboardPage() {
                     className="h-12 w-12 rounded-lg object-cover"
                   />
                   <div>
-                    <p className="font-medium text-cloudera-charcoal">{o.location.name}</p>
-                    <p className="text-xs text-body-muted">Owned by {o.team.name}</p>
+                    <p className="font-semibold text-cloudera-navy">{o.location.name}</p>
+                    <p className="text-xs font-medium text-cloudera-gray">Owned by {o.team.name}</p>
                   </div>
                   <span className={`ml-auto rounded px-2 py-0.5 text-xs text-white ${style?.bg ?? "bg-zinc-500"}`}>
                     {style?.label ?? o.location.colorGroup}
@@ -302,18 +302,18 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-cloudera-charcoal">Recent activity</h2>
+          <h2 className="text-lg font-bold text-cloudera-navy">Recent activity</h2>
           <ul className="mt-4 max-h-96 space-y-2 overflow-y-auto text-sm">
             {game.visits.map((v) => (
               <li
                 key={v.id}
                 className="rounded-xl border border-cloudera-border bg-cloudera-muted/40 px-3 py-2"
               >
-                <span className="font-medium text-cloudera-charcoal">{v.team.name}</span> —{" "}
+                <span className="font-semibold text-cloudera-navy">{v.team.name}</span> —{" "}
                 {v.visitType.toLowerCase()}{" "}
-                <span className="text-cloudera-orange">{v.location.name}</span>
+                <span className="font-medium text-cloudera-orange-dark">{v.location.name}</span>
                 {v.amount > 0 && <span> (£{v.amount})</span>}
-                <span className="block text-xs text-body-muted">
+                <span className="block text-xs font-medium text-cloudera-gray">
                   {new Date(v.createdAt).toLocaleString()}
                 </span>
               </li>

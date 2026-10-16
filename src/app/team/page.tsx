@@ -160,7 +160,7 @@ export default function TeamAppPage() {
 
   if (!state) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-body-muted">
+      <main className="flex min-h-screen items-center justify-center font-medium text-cloudera-gray">
         Loading team board…
       </main>
     );
@@ -209,15 +209,17 @@ export default function TeamAppPage() {
         <ClouderaLogo href="/" size="sm" />
         <div className="mt-3 flex items-start justify-between gap-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-cloudera-orange">
+            <p className="text-xs font-bold uppercase tracking-widest text-cloudera-blue">
               Monopoly Run
             </p>
-            <h1 className="text-xl font-bold text-cloudera-charcoal">{team.name}</h1>
-            <p className="text-xs text-body-muted">Leader: {team.leaderName}</p>
+            <h1 className="text-xl font-bold text-cloudera-navy">{team.name}</h1>
+            <p className="text-xs font-medium text-cloudera-gray">Leader: {team.leaderName}</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-cloudera-orange">£{team.balance}</p>
-            <p className="text-xs uppercase tracking-wide text-body-muted">{game.status}</p>
+            <p className="text-2xl font-bold text-cloudera-orange-dark">£{team.balance}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-cloudera-navy">
+              {game.status}
+            </p>
           </div>
         </div>
         <div className="mt-3">
@@ -225,7 +227,7 @@ export default function TeamAppPage() {
         </div>
         {geoError && <p className="mt-2 text-xs text-red-600">{geoError}</p>}
         {game.status !== "ACTIVE" && (
-          <p className="mt-2 rounded-lg bg-cloudera-orange-soft px-3 py-2 text-xs text-cloudera-charcoal">
+          <p className="mt-2 rounded-lg bg-cloudera-blue-soft px-3 py-2 text-xs font-medium text-cloudera-navy">
             The manager has not started the run yet. You can preview locations but cannot buy or pay
             rent until the game is active.
           </p>
@@ -236,7 +238,7 @@ export default function TeamAppPage() {
         <h2 className="section-heading mb-2 px-1">Map</h2>
         <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-64" />
         {!geo && (
-          <p className="mt-2 px-1 text-xs text-body-muted">
+          <p className="mt-2 px-1 text-xs font-medium text-cloudera-gray">
             Enable location to see your team on the map.
           </p>
         )}
@@ -245,7 +247,7 @@ export default function TeamAppPage() {
       <section className="board-card mb-4 rounded-2xl p-4">
         <div className="mb-3 flex items-baseline justify-between gap-2">
           <h2 className="section-heading">Your properties</h2>
-          <span className="text-xs text-body-muted">
+          <span className="text-xs font-medium text-cloudera-gray">
             {ownedProperties.length} owned
             {ownedProperties.length > 0 && (
               <> · £{portfolioValue} portfolio · £{rentPerVisit} rent/visit</>
@@ -253,7 +255,7 @@ export default function TeamAppPage() {
           </span>
         </div>
         {ownedProperties.length === 0 ? (
-          <p className="text-sm text-body-muted">
+          <p className="text-sm font-medium text-cloudera-gray">
             You don&apos;t own any squares yet. Visit an unowned location, take a selfie, and buy your
             first property.
           </p>
@@ -264,7 +266,7 @@ export default function TeamAppPage() {
               return (
                 <li
                   key={prop.id}
-                  className="flex items-center gap-3 rounded-xl border border-cloudera-orange/25 bg-cloudera-orange-soft p-2"
+                  className="flex items-center gap-3 rounded-xl border border-cloudera-blue/30 bg-cloudera-blue-soft p-2"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -273,8 +275,8 @@ export default function TeamAppPage() {
                     className="h-14 w-14 shrink-0 rounded-lg object-cover"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-cloudera-charcoal">{prop.name}</p>
-                    <p className="text-xs text-body-muted">
+                    <p className="font-semibold text-cloudera-navy">{prop.name}</p>
+                    <p className="text-xs font-medium text-cloudera-gray">
                       Paid £{prop.price} · Rent £{prop.rent} when rivals visit
                     </p>
                   </div>
@@ -288,7 +290,7 @@ export default function TeamAppPage() {
                       href={`https://www.google.com/maps/dir/?api=1&destination=${prop.latitude},${prop.longitude}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[10px] text-cloudera-orange underline"
+                      className="text-[10px] font-semibold text-cloudera-orange-dark underline"
                     >
                       Directions
                     </a>
@@ -301,7 +303,7 @@ export default function TeamAppPage() {
       </section>
 
       {message && (
-        <p className="mb-4 rounded-xl border border-cloudera-orange/30 bg-cloudera-orange-soft px-4 py-3 text-sm text-cloudera-charcoal">
+        <p className="mb-4 rounded-xl border border-cloudera-blue/40 bg-cloudera-blue-soft px-4 py-3 text-sm font-medium text-cloudera-navy">
           {message}
         </p>
       )}
@@ -316,12 +318,12 @@ export default function TeamAppPage() {
                 <li key={loc.id} className="board-card rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-semibold text-cloudera-charcoal">{loc.name}</p>
-                      <p className="text-xs text-body-muted">
+                      <p className="font-semibold text-cloudera-navy">{loc.name}</p>
+                      <p className="text-xs font-medium text-cloudera-gray">
                         {loc.distanceM}m away · Buy £{loc.price} · Rent £{loc.rent}
                       </p>
                       {loc.owner && (
-                        <p className="mt-1 text-xs text-body-muted">
+                        <p className="mt-1 text-xs font-medium text-cloudera-gray">
                           Owner: {loc.owner.name}
                         </p>
                       )}
@@ -381,9 +383,9 @@ export default function TeamAppPage() {
                 key={loc.id}
                 className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-sm ${
                   loc.inRange
-                    ? "border-cloudera-orange/40 bg-cloudera-orange-soft"
+                    ? "border-cloudera-orange-dark/40 bg-cloudera-orange-soft"
                     : isMine
-                      ? "border-cloudera-orange/30 bg-cloudera-orange-soft/70"
+                      ? "border-cloudera-blue/40 bg-cloudera-blue-soft"
                       : "border-cloudera-border bg-cloudera-muted/50"
                 }`}
               >
@@ -392,14 +394,14 @@ export default function TeamAppPage() {
                   aria-hidden
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-cloudera-charcoal">{loc.name}</p>
-                  <p className="text-xs text-body-muted">
+                  <p className="truncate font-semibold text-cloudera-navy">{loc.name}</p>
+                  <p className="text-xs font-medium text-cloudera-gray">
                     {isMine ? "Your property" : owned ? `Owned · ${loc.owner?.name}` : "Unowned"}
                     {loc.distanceM != null && ` · ${loc.distanceM}m`}
                   </p>
                 </div>
                 {isMine && (
-                  <span className="shrink-0 rounded-full bg-cloudera-orange-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-cloudera-orange">
+                  <span className="shrink-0 rounded-full bg-cloudera-blue-soft px-2 py-0.5 text-[10px] font-bold uppercase text-cloudera-navy">
                     Yours
                   </span>
                 )}
