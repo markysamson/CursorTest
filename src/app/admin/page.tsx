@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { RunMapLazy } from "@/components/maps/RunMapLazy";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
+import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 
 type Team = { id: string; name: string; leaderName: string; balance: number };
 type Game = {
@@ -34,6 +36,8 @@ type Dashboard = {
     visits: Visit[];
   };
   leaderboard: (Team & { propertiesOwned: number })[];
+  mapProperties: MapPropertyMarker[];
+  mapTeams: MapTeamMarker[];
 };
 
 export default function AdminDashboardPage() {
@@ -111,7 +115,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const { game, leaderboard } = data;
+  const { game, leaderboard, mapProperties, mapTeams } = data;
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl px-4 py-8 md:px-8">
@@ -155,6 +159,23 @@ export default function AdminDashboardPage() {
           </button>
         </div>
       </header>
+
+      <section className="board-card mb-6 rounded-2xl p-6">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-semibold text-amber-100">Live map</h2>
+            <p className="text-sm text-emerald-50/80">
+              Coloured dots are Monopoly properties; larger circles are team leaders&apos; latest GPS
+              positions (updates when teams are logged in on mobile).
+            </p>
+          </div>
+          <p className="text-xs text-emerald-100/70">
+            {mapTeams.length} team{mapTeams.length === 1 ? "" : "s"} on map · {mapProperties.length}{" "}
+            properties
+          </p>
+        </div>
+        <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-80 md:h-[28rem]" />
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="board-card rounded-2xl p-6">

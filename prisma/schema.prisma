@@ -40,6 +40,9 @@ model Team {
   pinHash   String
   leaderName String
   balance   Int
+  lastLatitude   Float?
+  lastLongitude  Float?
+  lastLocationAt DateTime?
   createdAt DateTime @default(now())
   ownerships PropertyOwnership[]
   visits    Visit[]

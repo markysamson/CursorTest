@@ -5,7 +5,8 @@ A GPS-verified team activity inspired by the London Monopoly board. Managers cre
 ## Features
 
 - **Manager console** (`/admin`): create teams with PINs, start/end the run, live leaderboard, property ownership with selfies, activity feed
-- **Team app** (`/team`): mobile-friendly board list, continuous GPS tracking, geofenced check-in, selfie capture to buy unowned properties, automatic rent payments
+- **Team app** (`/team`): mobile-friendly board list, **interactive map** (your team + all properties), continuous GPS tracking, geofenced check-in, selfie capture to buy unowned properties, automatic rent payments
+- **Live maps**: OpenStreetMap via Leaflet — managers see every team’s last reported position; teams see themselves and all property squares
 - **22 London locations** seeded from classic Monopoly street names with map links
 
 ## Quick start

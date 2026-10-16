@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GeoTracker, type GeoPosition } from "@/components/GeoTracker";
+import { RunMapLazy } from "@/components/maps/RunMapLazy";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
+import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 
 type LocationState = {
   id: string;
@@ -69,6 +71,25 @@ export default function TeamAppPage() {
     };
   }, [loadState]);
 
+  useEffect(() => {
+    if (!geo) return;
+    let cancelled = false;
+    const send = () => {
+      if (cancelled) return;
+      void fetch("/api/team/location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ latitude: geo.latitude, longitude: geo.longitude }),
+      });
+    };
+    send();
+    const t = window.setInterval(send, 12000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(t);
+    };
+  }, [geo]);
+
   async function performCheckIn(locationId: string, selfie?: File) {
     if (!geo) {
       setMessage("Waiting for GPS before check-in.");
@@ -131,6 +152,29 @@ export default function TeamAppPage() {
   const { game, team, locations } = state;
   const nearby = locations.filter((l) => l.inRange);
 
+  const mapProperties: MapPropertyMarker[] = locations.map((loc) => ({
+    id: loc.id,
+    name: loc.name,
+    latitude: loc.latitude,
+    longitude: loc.longitude,
+    colorGroup: loc.colorGroup,
+    ownerName: loc.owner?.name ?? null,
+    price: loc.price,
+  }));
+
+  const mapTeams: MapTeamMarker[] = geo
+    ? [
+        {
+          id: "self",
+          name: team.name,
+          latitude: geo.latitude,
+          longitude: geo.longitude,
+          leaderName: team.leaderName,
+          isSelf: true,
+        },
+      ]
+    : [];
+
   return (
     <main className="mx-auto min-h-screen max-w-lg px-4 pb-24 pt-6">
       <input
@@ -167,6 +211,18 @@ export default function TeamAppPage() {
           </p>
         )}
       </header>
+
+      <section className="board-card mb-4 rounded-2xl p-3">
+        <h2 className="mb-2 px-1 text-sm font-semibold uppercase tracking-wider text-amber-200/90">
+          Map
+        </h2>
+        <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-64" />
+        {!geo && (
+          <p className="mt-2 px-1 text-xs text-emerald-100/70">
+            Enable location to see your team on the map.
+          </p>
+        )}
+      </section>
 
       {message && (
         <p className="mb-4 rounded-xl border border-amber-300/30 bg-amber-500/15 px-4 py-3 text-sm text-amber-50">

@@ -26,6 +26,37 @@ export async function GET() {
 
   const locations = await prisma.location.findMany({ orderBy: { boardOrder: "asc" } });
 
+  const ownershipByLocationId = new Map(
+    game?.ownerships.map((o) => [o.locationId, o.team.name]) ?? [],
+  );
+
+  const mapProperties = locations.map((loc) => ({
+    id: loc.id,
+    name: loc.name,
+    latitude: loc.latitude,
+    longitude: loc.longitude,
+    colorGroup: loc.colorGroup,
+    ownerName: ownershipByLocationId.get(loc.id) ?? null,
+    price: loc.price,
+  }));
+
+  const mapTeams =
+    game?.teams
+      .filter(
+        (t) =>
+          t.lastLatitude != null &&
+          t.lastLongitude != null &&
+          t.lastLocationAt != null,
+      )
+      .map((t) => ({
+        id: t.id,
+        name: t.name,
+        leaderName: t.leaderName,
+        latitude: t.lastLatitude as number,
+        longitude: t.lastLongitude as number,
+        updatedAt: t.lastLocationAt?.toISOString() ?? null,
+      })) ?? [];
+
   const leaderboard =
     game?.teams
       .map((t) => ({
@@ -37,5 +68,5 @@ export async function GET() {
       }))
       .sort((a, b) => b.balance - a.balance) ?? [];
 
-  return NextResponse.json({ game, locations, leaderboard });
+  return NextResponse.json({ game, locations, leaderboard, mapProperties, mapTeams });
 }
