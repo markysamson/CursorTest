@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
 import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
 
   if (!data) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-emerald-100/80">
+      <main className="flex min-h-screen items-center justify-center text-body-muted">
         {error ?? "Loading manager console…"}
       </main>
     );
@@ -119,16 +119,19 @@ export default function AdminDashboardPage() {
   const { game, leaderboard, mapProperties, mapTeams, teamsWithoutLocation } = data;
 
   return (
-    <main className="mx-auto min-h-screen max-w-6xl px-4 py-8 md:px-8">
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
+    <main className="mx-auto min-h-screen max-w-6xl bg-white px-4 py-8 md:px-8">
+      <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-cloudera-border pb-6">
         <div>
-          <Link href="/" className="text-sm text-emerald-100/70 hover:text-emerald-50">
-            Monopoly Run
-          </Link>
-          <h1 className="text-3xl font-bold text-amber-100">{game.name}</h1>
-          <p className="text-sm text-emerald-50/80">
+          <ClouderaLogo href="/" size="sm" />
+          <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-cloudera-orange">
+            Manager console
+          </p>
+          <h1 className="text-3xl font-bold text-cloudera-charcoal">{game.name}</h1>
+          <p className="text-sm text-body-muted">
             Status:{" "}
-            <span className="font-semibold uppercase tracking-wide text-amber-200">{game.status}</span>
+            <span className="font-semibold uppercase tracking-wide text-cloudera-orange">
+              {game.status}
+            </span>
             · Geofence {game.geofenceRadiusM}m · Start balance £{game.startingBalance}
           </p>
         </div>
@@ -137,7 +140,7 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => setGameStatus("ACTIVE")}
-              className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950"
+              className="btn-primary rounded-xl px-4 py-2 text-sm"
             >
               Start run
             </button>
@@ -146,38 +149,34 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => setGameStatus("FINISHED")}
-              className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-emerald-950"
+              className="btn-primary rounded-xl px-4 py-2 text-sm"
             >
               End run &amp; show final scores
             </button>
           )}
-          <button
-            type="button"
-            onClick={logout}
-            className="rounded-xl border border-amber-200/30 px-4 py-2 text-sm"
-          >
+          <button type="button" onClick={logout} className="btn-secondary rounded-xl px-4 py-2 text-sm">
             Log out
           </button>
         </div>
       </header>
 
-      <section className="board-card mb-6 rounded-2xl p-6">
+      <section className="board-card board-card-accent mb-6 rounded-2xl p-6">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 className="text-lg font-semibold text-amber-100">Live map</h2>
-            <p className="text-sm text-emerald-50/80">
+            <h2 className="text-lg font-semibold text-cloudera-charcoal">Live map</h2>
+            <p className="text-sm text-body-muted">
               Coloured dots are Monopoly properties; larger circles are team leaders&apos; latest GPS
               positions (updates when teams are logged in on mobile).
             </p>
           </div>
-          <p className="text-xs text-emerald-100/70">
+          <p className="text-xs text-body-muted">
             {mapTeams.length} team{mapTeams.length === 1 ? "" : "s"} on map · {mapProperties.length}{" "}
             properties
           </p>
         </div>
         <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-80 md:h-[28rem]" />
         {teamsWithoutLocation.length > 0 && (
-          <p className="mt-3 text-xs text-amber-100/90">
+          <p className="mt-3 text-xs text-cloudera-orange">
             No GPS yet:{" "}
             {teamsWithoutLocation.map((t) => `${t.name} (${t.leaderName})`).join(", ")}. Team leaders
             must open the team app, allow location, and see a GPS lock — then refresh every ~12s.
@@ -187,25 +186,25 @@ export default function AdminDashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-amber-100">Create team</h2>
+          <h2 className="text-lg font-semibold text-cloudera-charcoal">Create team</h2>
           <form onSubmit={createTeam} className="mt-4 grid gap-3 sm:grid-cols-2">
             <input
               placeholder="Team name"
-              className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm"
+              className="input-field py-2 text-sm"
               value={teamForm.name}
               onChange={(e) => setTeamForm((f) => ({ ...f, name: e.target.value }))}
               required
             />
             <input
               placeholder="Leader name"
-              className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm"
+              className="input-field py-2 text-sm"
               value={teamForm.leaderName}
               onChange={(e) => setTeamForm((f) => ({ ...f, leaderName: e.target.value }))}
               required
             />
             <input
               placeholder="4–12 digit PIN"
-              className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm sm:col-span-2"
+              className="input-field py-2 text-sm sm:col-span-2"
               value={teamForm.pin}
               onChange={(e) => setTeamForm((f) => ({ ...f, pin: e.target.value }))}
               pattern="\d{4,12}"
@@ -214,7 +213,7 @@ export default function AdminDashboardPage() {
             <button
               type="submit"
               disabled={busy || game.status === "FINISHED"}
-              className="rounded-xl bg-amber-500/90 py-2 text-sm font-semibold text-emerald-950 sm:col-span-2 disabled:opacity-50"
+              className="btn-primary rounded-xl py-2 text-sm sm:col-span-2 disabled:opacity-50"
             >
               Add team
             </button>
@@ -223,16 +222,16 @@ export default function AdminDashboardPage() {
             {game.teams.map((t) => (
               <li
                 key={t.id}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-black/15 px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-xl border border-cloudera-border bg-cloudera-muted/60 px-3 py-2 text-sm"
               >
                 <div>
-                  <p className="font-medium">{t.name}</p>
-                  <p className="text-emerald-100/70">Leader: {t.leaderName} · £{t.balance}</p>
+                  <p className="font-medium text-cloudera-charcoal">{t.name}</p>
+                  <p className="text-body-muted">Leader: {t.leaderName} · £{t.balance}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeTeam(t.id)}
-                  className="text-xs text-red-300 hover:text-red-200"
+                  className="text-xs text-red-600 hover:text-red-700"
                 >
                   Remove
                 </button>
@@ -242,27 +241,27 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-amber-100">
+          <h2 className="text-lg font-semibold text-cloudera-charcoal">
             {game.status === "FINISHED" ? "Final scores" : "Live leaderboard"}
           </h2>
           <ol className="mt-4 space-y-2">
             {leaderboard.map((t, i) => (
               <li
                 key={t.id}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-black/15 px-4 py-3"
+                className="flex items-center justify-between rounded-xl border border-cloudera-border bg-cloudera-muted/60 px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-200">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cloudera-orange-soft text-sm font-bold text-cloudera-orange">
                     {i + 1}
                   </span>
                   <div>
-                    <p className="font-semibold">{t.name}</p>
-                    <p className="text-xs text-emerald-100/70">
+                    <p className="font-semibold text-cloudera-charcoal">{t.name}</p>
+                    <p className="text-xs text-body-muted">
                       {t.propertiesOwned} properties · {t.leaderName}
                     </p>
                   </div>
                 </div>
-                <p className="text-lg font-bold text-amber-200">£{t.balance}</p>
+                <p className="text-lg font-bold text-cloudera-orange">£{t.balance}</p>
               </li>
             ))}
           </ol>
@@ -271,17 +270,17 @@ export default function AdminDashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-amber-100">Property map</h2>
+          <h2 className="text-lg font-semibold text-cloudera-charcoal">Property map</h2>
           <ul className="mt-4 max-h-96 space-y-2 overflow-y-auto text-sm">
             {game.ownerships.length === 0 && (
-              <p className="text-emerald-100/70">No properties purchased yet.</p>
+              <p className="text-body-muted">No properties purchased yet.</p>
             )}
             {game.ownerships.map((o) => {
               const style = COLOR_GROUP_STYLES[o.location.colorGroup];
               return (
                 <li
                   key={o.id}
-                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/15 p-2"
+                  className="flex items-center gap-3 rounded-xl border border-cloudera-border bg-white p-2"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -290,10 +289,10 @@ export default function AdminDashboardPage() {
                     className="h-12 w-12 rounded-lg object-cover"
                   />
                   <div>
-                    <p className="font-medium">{o.location.name}</p>
-                    <p className="text-xs text-emerald-100/70">Owned by {o.team.name}</p>
+                    <p className="font-medium text-cloudera-charcoal">{o.location.name}</p>
+                    <p className="text-xs text-body-muted">Owned by {o.team.name}</p>
                   </div>
-                  <span className={`ml-auto rounded px-2 py-0.5 text-xs ${style?.bg ?? ""}`}>
+                  <span className={`ml-auto rounded px-2 py-0.5 text-xs text-white ${style?.bg ?? "bg-zinc-500"}`}>
                     {style?.label ?? o.location.colorGroup}
                   </span>
                 </li>
@@ -303,14 +302,18 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-amber-100">Recent activity</h2>
+          <h2 className="text-lg font-semibold text-cloudera-charcoal">Recent activity</h2>
           <ul className="mt-4 max-h-96 space-y-2 overflow-y-auto text-sm">
             {game.visits.map((v) => (
-              <li key={v.id} className="rounded-xl border border-white/10 bg-black/15 px-3 py-2">
-                <span className="font-medium">{v.team.name}</span> — {v.visitType.toLowerCase()}{" "}
-                <span className="text-amber-200">{v.location.name}</span>
+              <li
+                key={v.id}
+                className="rounded-xl border border-cloudera-border bg-cloudera-muted/40 px-3 py-2"
+              >
+                <span className="font-medium text-cloudera-charcoal">{v.team.name}</span> —{" "}
+                {v.visitType.toLowerCase()}{" "}
+                <span className="text-cloudera-orange">{v.location.name}</span>
                 {v.amount > 0 && <span> (£{v.amount})</span>}
-                <span className="block text-xs text-emerald-100/60">
+                <span className="block text-xs text-body-muted">
                   {new Date(v.createdAt).toLocaleString()}
                 </span>
               </li>

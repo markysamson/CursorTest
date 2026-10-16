@@ -50,10 +50,10 @@ export function GeoTracker({ onUpdate }: Props) {
   }, [onUpdate]);
 
   return (
-    <div className="flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-950/50 px-3 py-1.5 text-xs text-emerald-100">
+    <div className="flex items-center gap-2 rounded-full border border-cloudera-orange/30 bg-cloudera-orange-soft px-3 py-1.5 text-xs text-cloudera-charcoal">
       <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cloudera-orange opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-cloudera-orange" />
       </span>
       {status}
     </div>

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
+import { ProductTitle } from "@/components/brand/ProductTitle";
 
 export default function TeamLoginPage() {
   const [teamName, setTeamName] = useState("");
@@ -34,42 +36,41 @@ export default function TeamLoginPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-      <Link href="/" className="mb-6 text-sm text-emerald-100/70 hover:text-emerald-50">
+      <Link href="/" className="link-muted mb-6 inline-block">
         ← Back
       </Link>
-      <div className="board-card rounded-3xl p-8">
-        <h1 className="text-2xl font-bold text-amber-100">Team login</h1>
-        <p className="mt-2 text-sm text-emerald-50/80">
-          Team leaders: sign in here and keep location enabled on your phone.
-        </p>
+      <div className="board-card board-card-accent rounded-3xl p-8">
+        <ClouderaLogo href="/" size="sm" />
+        <div className="mt-4">
+          <ProductTitle
+            title="Team login"
+            subtitle="Team leaders: sign in here and keep location enabled on your phone."
+          />
+        </div>
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <label className="block text-sm">
+          <label className="block text-sm text-cloudera-charcoal">
             Team name
             <input
-              className="mt-1 w-full rounded-xl border border-amber-200/20 bg-black/20 px-4 py-3"
+              className="input-field mt-1"
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
               required
             />
           </label>
-          <label className="block text-sm">
+          <label className="block text-sm text-cloudera-charcoal">
             PIN
             <input
               type="password"
               inputMode="numeric"
               pattern="\d{4,12}"
-              className="mt-1 w-full rounded-xl border border-amber-200/20 bg-black/20 px-4 py-3"
+              className="input-field mt-1"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               required
             />
           </label>
-          {error && <p className="text-sm text-red-300">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-amber-500/90 py-3 font-semibold text-emerald-950 disabled:opacity-60"
-          >
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <button type="submit" disabled={loading} className="btn-primary w-full rounded-xl py-3">
             {loading ? "Signing in…" : "Start hunting"}
           </button>
         </form>

@@ -6,7 +6,7 @@ import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 const RunMap = dynamic(() => import("./RunMap").then((m) => m.RunMap), {
   ssr: false,
   loading: () => (
-    <div className="flex h-72 items-center justify-center rounded-2xl border border-white/15 bg-black/20 text-sm text-emerald-100/70 md:h-96">
+    <div className="flex h-72 items-center justify-center rounded-2xl border border-cloudera-border bg-cloudera-muted text-sm text-body-muted md:h-96">
       Loading map…
     </div>
   ),

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Monopoly Run London",
-  description: "GPS-verified Monopoly property hunt across London",
+  title: "Monopoly Run | Cloudera",
+  description: "Cloudera team activity — GPS-verified Monopoly property hunt across London",
 };
 
 export default function RootLayout({
