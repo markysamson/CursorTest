@@ -126,7 +126,12 @@ sudo systemctl status monopoly-run
 curl -s http://127.0.0.1:3000/api/health
 ```
 
-## 5. HTTPS with Caddy
+## 5. Caddy (reverse proxy)
+
+Caddy sits in front of the app on **port 3000** and exposes **80** (and **443** when using a domain).  
+**`systemctl` showing caddy as “active” does not guarantee anything is listening on 443** — a bad or placeholder config often means no HTTPS port.
+
+Install Caddy:
 
 ```bash
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
@@ -135,14 +140,35 @@ curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo 
 sudo apt update && sudo apt install -y caddy
 ```
 
-Edit `deploy/aws/Caddyfile` — set your domain — then:
+### Option A — Test with public IP first (HTTP on port **80** only)
+
+Use this if you **do not have a domain yet**. You will **not** see port **443** open — that is expected. Browse **`http://YOUR_PUBLIC_IP`** (not https).
+
+```bash
+sudo cp /opt/monopoly-run/deploy/aws/Caddyfile.http-ip /etc/caddy/Caddyfile
+sudo caddy validate --config /etc/caddy/Caddyfile
+sudo systemctl restart caddy
+sudo ss -tlnp | grep caddy
+```
+
+You should see Caddy on **`:80`**. Confirm locally: `curl -I http://127.0.0.1/`
+
+### Option B — Production with a domain (HTTPS on **443**)
+
+1. Point DNS **A record** at the EC2 public IP (or Elastic IP).
+2. Edit `deploy/aws/Caddyfile` in the repo: replace **`YOUR_DOMAIN`** with e.g. `run.yourclub.org` (must not stay as the placeholder).
+3. Install config and **restart** (not just reload, after first setup):
 
 ```bash
 sudo cp /opt/monopoly-run/deploy/aws/Caddyfile /etc/caddy/Caddyfile
-sudo systemctl reload caddy
+sudo caddy validate --config /etc/caddy/Caddyfile
+sudo systemctl restart caddy
+sudo ss -tlnp | grep caddy
 ```
 
-Point your domain’s **A record** at the instance (or Elastic IP).
+After a minute, Caddy should listen on **`:80` and `:443`**. Open `https://YOUR_DOMAIN/admin`.
+
+If certificate issuance fails, check: DNS propagated, security group allows **80 and 443** (Let’s Encrypt uses both), and logs: `sudo journalctl -u caddy -n 50 --no-pager`.
 
 ## 6. Use the app
 
@@ -173,10 +199,46 @@ Optional: **EBS snapshot** in the EC2 console before a big event.
 
 ## Troubleshooting
 
+Run on the server:
+
+```bash
+bash /opt/monopoly-run/deploy/aws/diagnose.sh
+```
+
+### Caddy “running” but no port 443 (or site unreachable)
+
+Work through this order:
+
+1. **App must respond first** — on the instance:
+   ```bash
+   curl -s http://127.0.0.1:3000/api/health
+   ```
+   If this fails, fix `monopoly-run`: `sudo journalctl -u monopoly-run -n 40 --no-pager`
+
+2. **443 only appears with a working domain config** — the IP-only test file (`Caddyfile.http-ip`) listens on **80 only**. No 443 is normal until Option B is set up with real DNS.
+
+3. **Placeholder domain** — if `/etc/caddy/Caddyfile` still says `run.example.com` or `YOUR_DOMAIN`, Caddy will not serve your site. Edit the file, then `sudo caddy validate --config /etc/caddy/Caddyfile` and `sudo systemctl restart caddy`.
+
+4. **AWS Security group** (most common external failure) — EC2 → your instance → **Security** tab → security group → **Inbound rules** must include:
+   - TCP **80** from `0.0.0.0/0` (or your IP for testing)
+   - TCP **443** from `0.0.0.0/0` (when using HTTPS)
+   - The instance **OS firewall** on Ubuntu is usually open; if you enabled `ufw`, allow 80/443: `sudo ufw allow 80,443/tcp`
+
+5. **Check what is actually listening** (prefer over `netstat -a`):
+   ```bash
+   sudo ss -tlnp | grep -E 'caddy|:3000'
+   ```
+
+6. **Caddy logs** — look for certificate or config errors:
+   ```bash
+   sudo journalctl -u caddy -n 50 --no-pager
+   ```
+
 | Issue | Fix |
 |--------|-----|
 | Cannot SSH | Security group must allow 22 from your IP; use `ubuntu` user and `.pem` key |
-| Site unreachable | Security group 80/443; `curl localhost:3000/api/health` on the instance |
+| No :443 in `ss` / netstat | Use domain Caddyfile + DNS, or use `Caddyfile.http-ip` and **http://IP** on port 80 |
+| Site unreachable from browser | Security group 80/443; app health on :3000; Caddy on :80 |
 | Login loops | Use HTTPS; set `AUTH_SECRET` and restart `monopoly-run` |
 | Empty map / boards | Run `npm run setup:prod` with `.env` loaded |
 | Uploads 404 | `MONOPOLY_DATA_DIR=/var/lib/monopoly-run` and directory writable by `monopoly` user |
