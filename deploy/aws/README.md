@@ -49,16 +49,61 @@ sudo -u monopoly -H bash -c '
 '
 ```
 
-Production env:
+### Production config (`.env` file)
+
+The app reads **`/var/lib/monopoly-run/.env`** at startup (see the systemd unit). That file holds secrets and paths — it is **not** in git.
+
+Create it from the template:
 
 ```bash
 sudo cp /opt/monopoly-run/deploy/aws/env.example /var/lib/monopoly-run/.env
 sudo chown monopoly:monopoly /var/lib/monopoly-run/.env
 sudo chmod 600 /var/lib/monopoly-run/.env
+```
+
+**Edit the file** and replace the placeholder values. On Ubuntu, `nano` is just a simple terminal text editor (like Notepad). You can use **`nano`**, **`vim`**, or edit locally and `scp` the file — whatever you prefer.
+
+```bash
 sudo nano /var/lib/monopoly-run/.env
 ```
 
-Generate a secret: `openssl rand -hex 32`
+In the editor, change **only** these lines (leave the rest as-is unless you know you need to):
+
+| Variable | What to put |
+|----------|-------------|
+| `MONOPOLY_DATA_DIR` | Keep `"/var/lib/monopoly-run"` (database + selfies live here) |
+| `AUTH_SECRET` | A long random string — run on the server: `openssl rand -hex 32` and paste the output between the quotes |
+| `ADMIN_PASSWORD` | The password managers use at `/admin` (pick something strong; not `monopoly-admin`) |
+| `HOSTNAME` / `PORT` | Keep `0.0.0.0` and `3000` (Caddy talks to the app on localhost:3000) |
+
+Example after editing (your secret and password will differ):
+
+```env
+MONOPOLY_DATA_DIR="/var/lib/monopoly-run"
+AUTH_SECRET="a1b2c3...64 hex chars from openssl..."
+ADMIN_PASSWORD="YourEventManagerPassword2026"
+HOSTNAME=0.0.0.0
+PORT=3000
+```
+
+**If you use nano:** edit the lines → **Ctrl+O**, Enter to save → **Ctrl+X** to exit.
+
+**Without an editor** (paste your generated secret and chosen admin password):
+
+```bash
+SECRET=$(openssl rand -hex 32)
+sudo tee /var/lib/monopoly-run/.env >/dev/null <<EOF
+MONOPOLY_DATA_DIR="/var/lib/monopoly-run"
+AUTH_SECRET="$SECRET"
+ADMIN_PASSWORD="CHOOSE-A-STRONG-PASSWORD"
+HOSTNAME=0.0.0.0
+PORT=3000
+EOF
+sudo chown monopoly:monopoly /var/lib/monopoly-run/.env
+sudo chmod 600 /var/lib/monopoly-run/.env
+```
+
+Replace `CHOOSE-A-STRONG-PASSWORD` in that one-liner before running, or edit the file once with `nano` to set only the admin password.
 
 Build and seed (first time):
 
