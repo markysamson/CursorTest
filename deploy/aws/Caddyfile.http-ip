@@ -1,5 +1,5 @@
-# Quick test ONLY — use http://YOUR_EC2_PUBLIC_IP (port 80, not 443).
-# Phone GPS may not work without HTTPS; switch to Caddyfile when you have a domain.
+# No domain: use http://YOUR_EC2_PUBLIC_IP (port 80 only — no 443).
+# For phone GPS use Caddyfile.nip-io (free https://YOUR.IP.nip.io) or your own domain.
 #
 # sudo cp /opt/monopoly-run/deploy/aws/Caddyfile.http-ip /etc/caddy/Caddyfile
 # sudo caddy validate --config /etc/caddy/Caddyfile

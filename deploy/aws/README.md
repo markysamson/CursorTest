@@ -153,7 +153,26 @@ sudo ss -tlnp | grep caddy
 
 You should see Caddy on **`:80`**. Confirm locally: `curl -I http://127.0.0.1/`
 
-### Option B — Production with a domain (HTTPS on **443**)
+Open in a browser: **`http://YOUR_PUBLIC_IP`** (same IP as in the EC2 console).  
+**Limitation:** team phones often **block GPS** on plain `http://` (only `https://` or localhost). Manager login on a laptop over HTTP is usually fine for testing.
+
+### Option A2 — No domain, but you need HTTPS (phones + GPS)
+
+Use **[nip.io](https://nip.io)** — free wildcard DNS. Hostname **`YOUR.PUBLIC.IP.nip.io`** resolves to that IP with **no DNS setup** (e.g. IP `203.0.113.50` → `203.0.113.50.nip.io`).
+
+On the instance, get your IP and edit the Caddyfile:
+
+```bash
+curl -s http://169.254.169.254/latest/meta-data/public-ipv4
+sudo cp /opt/monopoly-run/deploy/aws/Caddyfile.nip-io /etc/caddy/Caddyfile
+sudo nano /etc/caddy/Caddyfile   # replace 203.0.113.50.nip.io with YOUR_IP.nip.io
+sudo caddy validate --config /etc/caddy/Caddyfile
+sudo systemctl restart caddy
+```
+
+After ~1 minute, use **`https://203.0.113.50.nip.io`** (your IP in the name). Caddy will obtain a Let’s Encrypt certificate. Security group must allow **80 and 443**.
+
+### Option B — Production with your own domain (HTTPS on **443**)
 
 1. Point DNS **A record** at the EC2 public IP (or Elastic IP).
 2. Edit `deploy/aws/Caddyfile` in the repo: replace **`YOUR_DOMAIN`** with e.g. `run.yourclub.org` (must not stay as the placeholder).
