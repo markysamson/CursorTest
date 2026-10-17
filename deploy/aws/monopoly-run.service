@@ -8,7 +8,11 @@ User=monopoly
 Group=monopoly
 WorkingDirectory=/opt/monopoly-run
 EnvironmentFile=/var/lib/monopoly-run/.env
-ExecStart=/usr/bin/npm run start
+Environment=MONOPOLY_BIND_HOST=0.0.0.0
+Environment=PORT=3000
+ExecStart=/usr/bin/bash /opt/monopoly-run/scripts/start-prod.sh
+StandardOutput=journal
+StandardError=journal
 Restart=on-failure
 RestartSec=5
 

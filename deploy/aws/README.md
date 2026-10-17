@@ -74,7 +74,7 @@ In the editor, change **only** these lines (leave the rest as-is unless you know
 | `MONOPOLY_DATA_DIR` | Keep `"/var/lib/monopoly-run"` (database + selfies live here) |
 | `AUTH_SECRET` | A long random string — run on the server: `openssl rand -hex 32` and paste the output between the quotes |
 | `ADMIN_PASSWORD` | The password managers use at `/admin` (pick something strong; not `monopoly-admin`) |
-| `HOSTNAME` / `PORT` | Keep `0.0.0.0` and `3000` (Caddy talks to the app on localhost:3000) |
+| `MONOPOLY_BIND_HOST` / `PORT` | Keep `0.0.0.0` and `3000` (Caddy → localhost:3000). **Do not use `HOSTNAME=`** — Linux sets that to `ip-172-…` and breaks startup. |
 
 Example after editing (your secret and password will differ):
 
@@ -82,7 +82,7 @@ Example after editing (your secret and password will differ):
 MONOPOLY_DATA_DIR="/var/lib/monopoly-run"
 AUTH_SECRET="a1b2c3...64 hex chars from openssl..."
 ADMIN_PASSWORD="YourEventManagerPassword2026"
-HOSTNAME=0.0.0.0
+MONOPOLY_BIND_HOST=0.0.0.0
 PORT=3000
 ```
 
@@ -96,7 +96,7 @@ sudo tee /var/lib/monopoly-run/.env >/dev/null <<EOF
 MONOPOLY_DATA_DIR="/var/lib/monopoly-run"
 AUTH_SECRET="$SECRET"
 ADMIN_PASSWORD="CHOOSE-A-STRONG-PASSWORD"
-HOSTNAME=0.0.0.0
+MONOPOLY_BIND_HOST=0.0.0.0
 PORT=3000
 EOF
 sudo chown monopoly:monopoly /var/lib/monopoly-run/.env
@@ -120,11 +120,20 @@ sudo -u monopoly -H bash -c '
 
 ```bash
 sudo cp /opt/monopoly-run/deploy/aws/monopoly-run.service /etc/systemd/system/
+sudo chmod +x /opt/monopoly-run/scripts/start-prod.sh
 sudo systemctl daemon-reload
 sudo systemctl enable --now monopoly-run
 sudo systemctl status monopoly-run
 curl -s http://127.0.0.1:3000/api/health
 ```
+
+If the service **restart loops** (`activating (auto-restart)`), read the real error:
+
+```bash
+sudo journalctl -u monopoly-run -n 40 --no-pager
+```
+
+Common causes: **no production build** (run `npm run build` as `monopoly`), **`HOSTNAME=0.0.0.0` in `.env`** (remove it; use `MONOPOLY_BIND_HOST=0.0.0.0`), or wrong ownership on `/opt/monopoly-run` / `/var/lib/monopoly-run`.
 
 ## 5. Caddy (reverse proxy)
 
