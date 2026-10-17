@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum GameStatus {
+  SETUP
+  ACTIVE
+  FINISHED
+}
+
+enum BoardSet {
+  LONDON_FULL
+  CITY_OF_LONDON
+  SAFFRON_WALDEN
+}
+
+enum VisitType {
+  PURCHASE
+  RENT
+  OWN_VISIT
+}
+
+model Game {
+  id                 String     @id @default(cuid())
+  name               String
+  boardSet           BoardSet   @default(LONDON_FULL)
+  status             GameStatus @default(SETUP)
+  startingBalance    Int        @default(1500)
+  geofenceRadiusM    Int        @default(120)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  teams              Team[]
+  ownerships         PropertyOwnership[]
+  visits             Visit[]
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  name      String
+  pinHash   String
+  leaderName String
+  balance   Int
+  lastLatitude   Float?
+  lastLongitude  Float?
+  lastLocationAt DateTime?
+  createdAt DateTime @default(now())
+  ownerships PropertyOwnership[]
+  visits    Visit[]
+
+  @@unique([gameId, name])
+}
+
+model Location {
+  id         String   @id @default(cuid())
+  boardSet   BoardSet @default(LONDON_FULL)
+  name       String
+  colorGroup String
+  price      Int
+  rent       Int
+  latitude   Float
+  longitude  Float
+  boardOrder Int
+  ownerships PropertyOwnership[]
+  visits     Visit[]
+
+  @@unique([boardSet, name])
+}
+
+model PropertyOwnership {
+  id           String   @id @default(cuid())
+  gameId       String
+  game         Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  locationId   String
+  location     Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  teamId       String
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  selfiePath   String
+  purchaseLat  Float
+  purchaseLng  Float
+  purchasedAt  DateTime @default(now())
+
+  @@unique([gameId, locationId])
+}
+
+model Visit {
+  id           String    @id @default(cuid())
+  gameId       String
+  game         Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  teamId       String
+  team         Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  locationId   String
+  location     Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  visitType    VisitType
+  amount       Int       @default(0)
+  selfiePath   String?
+  verifiedLat  Float
+  verifiedLng  Float
+  createdAt    DateTime  @default(now())
+
+  @@index([gameId, teamId, locationId])
+}
