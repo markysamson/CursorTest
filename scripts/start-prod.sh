@@ -13,7 +13,9 @@ export PATH="$ROOT/node_modules/.bin:$PATH"
 
 tsx scripts/ensure-data-dir.ts
 
-BIND="${MONOPOLY_BIND_HOST:-0.0.0.0}"
 PORT="${PORT:-3000}"
 
-exec next start -H "$BIND" -p "$PORT"
+# Always bind all interfaces on the VM. Never use the EC2 *public* IP here — it is
+# not assigned to a local network interface (EADDRNOTAVAIL). Caddy/nginx uses the
+# public IP; this process only needs 0.0.0.0:3000 on the instance.
+exec env -u HOSTNAME HOST=0.0.0.0 next start -H 0.0.0.0 -p "$PORT"

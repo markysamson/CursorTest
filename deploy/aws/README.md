@@ -87,7 +87,7 @@ In the editor, change **only** these lines (leave the rest as-is unless you know
 | `MONOPOLY_DATA_DIR` | Keep `"/var/lib/monopoly-run"` (database + selfies live here) |
 | `AUTH_SECRET` | A long random string — run on the server: `openssl rand -hex 32` and paste the output between the quotes |
 | `ADMIN_PASSWORD` | The password managers use at `/admin` (pick something strong; not `monopoly-admin`) |
-| `MONOPOLY_BIND_HOST` / `PORT` | Keep `0.0.0.0` and `3000` (Caddy → localhost:3000). **Do not use `HOSTNAME=`** — Linux sets that to `ip-172-…` and breaks startup. |
+| `PORT` | Keep `3000` (Caddy → localhost:3000). **Do not put your EC2 public IP in `.env`** — the app listens on `0.0.0.0` inside the VM only. |
 
 Example after editing (your secret and password will differ):
 
@@ -95,7 +95,6 @@ Example after editing (your secret and password will differ):
 MONOPOLY_DATA_DIR="/var/lib/monopoly-run"
 AUTH_SECRET="a1b2c3...64 hex chars from openssl..."
 ADMIN_PASSWORD="YourEventManagerPassword2026"
-MONOPOLY_BIND_HOST=0.0.0.0
 PORT=3000
 ```
 
@@ -109,7 +108,6 @@ sudo tee /var/lib/monopoly-run/.env >/dev/null <<EOF
 MONOPOLY_DATA_DIR="/var/lib/monopoly-run"
 AUTH_SECRET="$SECRET"
 ADMIN_PASSWORD="CHOOSE-A-STRONG-PASSWORD"
-MONOPOLY_BIND_HOST=0.0.0.0
 PORT=3000
 EOF
 sudo chown monopoly:monopoly /var/lib/monopoly-run/.env
@@ -287,4 +285,5 @@ Work through this order:
 | Empty map / boards | Run `npm run setup:prod` from `CursorTest` |
 | `datasource.url property is required` | Create `/var/lib/monopoly-run/.env` with `MONOPOLY_DATA_DIR`; or set `DATABASE_URL="file:/var/lib/monopoly-run/data.db"` |
 | `Location` table does not exist (seed) | Migrations and seed must use the same DB — pull latest, then `npm run setup:prod` (not seed alone). Remove stray `CursorTest/prisma/dev.db` or `CursorTest/dev.db` if created by mistake. |
+| `EADDRNOTAVAIL` / public IP on port 3000 | Remove `HOSTNAME`, `HOST`, or `MONOPOLY_BIND_HOST` from `/var/lib/monopoly-run/.env` if set to your public IP. Pull latest and restart — app binds `0.0.0.0` only. |
 | Uploads 404 | `MONOPOLY_DATA_DIR=/var/lib/monopoly-run` and directory writable by `monopoly` user |
