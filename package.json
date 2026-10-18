@@ -12,7 +12,7 @@
     "start": "bash scripts/start-prod.sh",
     "setup:prod": "tsx scripts/ensure-data-dir.ts && prisma migrate deploy && tsx prisma/seed.ts",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && npm rebuild better-sqlite3",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts"
   },

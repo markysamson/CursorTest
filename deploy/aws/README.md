@@ -34,7 +34,8 @@ ssh -i /path/to/key.pem ubuntu@YOUR_PUBLIC_IP
 
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y git curl build-essential
+sudo apt install -y git curl build-essential python3
+# build-essential + python3 are required so `better-sqlite3` native bindings compile on the server
 
 # Node 22 (LTS)
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
