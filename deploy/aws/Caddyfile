@@ -1,0 +1,13 @@
+# HTTPS with a real domain (DNS A record → this EC2 public IP).
+# 1. Replace YOUR_DOMAIN below (not run.example.com).
+# 2. sudo cp this file to /etc/caddy/Caddyfile
+# 3. sudo caddy validate --config /etc/caddy/Caddyfile
+# 4. sudo systemctl restart caddy
+# 5. Open https://YOUR_DOMAIN/admin
+#
+# No domain yet? Use Caddyfile.http-ip first (port 80 only).
+
+YOUR_DOMAIN {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}
