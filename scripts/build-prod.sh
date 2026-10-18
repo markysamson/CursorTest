@@ -4,11 +4,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export PATH="$ROOT/node_modules/.bin:$PATH"
 
-echo "Checking native SQLite driver (better-sqlite3)…"
-if ! node -e "require('better-sqlite3')" 2>/dev/null; then
-  echo "Rebuilding better-sqlite3 (needs build-essential on the server)…"
-  npm rebuild better-sqlite3
-fi
+bash scripts/rebuild-sqlite.sh
 
 echo "Running migrations and seed…"
 tsx scripts/ensure-data-dir.ts
