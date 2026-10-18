@@ -1,5 +1,8 @@
 import { mkdir } from "fs/promises";
+import { loadPrismaEnv } from "../prisma/load-env";
 import { getMonopolyDataDir, getUploadRoot, resolveDatabaseUrl } from "../src/lib/data-paths";
+
+loadPrismaEnv();
 import path from "path";
 
 async function main() {

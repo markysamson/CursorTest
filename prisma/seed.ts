@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { createPrismaClient } from "../src/lib/prisma-client";
 import {
   CITY_OF_LONDON_LOCATIONS,

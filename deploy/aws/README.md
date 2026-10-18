@@ -286,4 +286,5 @@ Work through this order:
 | Login loops | Use HTTPS; set `AUTH_SECRET` and restart `monopoly-run` |
 | Empty map / boards | Run `npm run setup:prod` from `CursorTest` |
 | `datasource.url property is required` | Create `/var/lib/monopoly-run/.env` with `MONOPOLY_DATA_DIR`; or set `DATABASE_URL="file:/var/lib/monopoly-run/data.db"` |
+| `Location` table does not exist (seed) | Migrations and seed must use the same DB — pull latest, then `npm run setup:prod` (not seed alone). Remove stray `CursorTest/prisma/dev.db` or `CursorTest/dev.db` if created by mistake. |
 | Uploads 404 | `MONOPOLY_DATA_DIR=/var/lib/monopoly-run` and directory writable by `monopoly` user |
