@@ -3,7 +3,7 @@
 # (same digits, dots kept). Replace the line below with YOUR_IP.nip.io
 #
 # curl -s http://169.254.169.254/latest/meta-data/public-ipv4   # show IP on EC2
-# sudo cp /opt/monopoly-run/deploy/aws/Caddyfile.nip-io /etc/caddy/Caddyfile
+# sudo cp /opt/monopoly-run/CursorTest/deploy/aws/Caddyfile.nip-io /etc/caddy/Caddyfile
 # edit /etc/caddy/Caddyfile — set the hostname to YOUR_IP.nip.io
 # sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl restart caddy
 # Open https://YOUR_IP.nip.io/admin  (phones get GPS over HTTPS)

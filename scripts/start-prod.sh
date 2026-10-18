@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 if [[ ! -d "$ROOT/.next" ]]; then
-  echo "Missing .next build. Run as monopoly: cd /opt/monopoly-run && npm run build" >&2
+  echo "Missing .next build. Run as monopoly: cd /opt/monopoly-run/CursorTest && npm run build" >&2
   exit 1
 fi
 

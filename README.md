@@ -40,4 +40,4 @@ Next.js (App Router), SQLite + Prisma, JWT session cookies, Tailwind CSS.
 
 For a small **EC2** instance with **persistent SQLite and selfies** on EBS, set `MONOPOLY_DATA_DIR` (e.g. `/var/lib/monopoly-run`). The app stores `data.db` and `uploads/` there and listens on `0.0.0.0` for Caddy/nginx.
 
-Step-by-step: **[deploy/aws/README.md](deploy/aws/README.md)** (free-tier micro instance, systemd, HTTPS).
+Step-by-step: **[deploy/aws/README.md](deploy/aws/README.md)** (EC2; app in `/opt/monopoly-run/CursorTest`, data in `/var/lib/monopoly-run`).

@@ -2,6 +2,13 @@
 
 Run Monopoly Run on a small **Ubuntu EC2** instance with SQLite and selfies on the **EBS boot volume**. Same app as local dev — set `MONOPOLY_DATA_DIR` so data survives redeploys.
 
+**Paths used in this guide**
+
+| Path | Purpose |
+|------|---------|
+| `/opt/monopoly-run/CursorTest` | **App code** (git clone creates the `CursorTest` folder) |
+| `/var/lib/monopoly-run` | **Data** — `.env`, SQLite, uploads (not in git) |
+
 **Free tier (new accounts):** typically 12 months of **750 hours/month** on a **t2.micro** or **t3.micro** plus **30 GB EBS**. After that you pay a few dollars per month for a micro instance. Check [AWS Free Tier](https://aws.amazon.com/free/) for current terms.
 
 ## 1. Launch EC2
@@ -34,20 +41,26 @@ curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 
 sudo useradd -r -m -d /opt/monopoly-run -s /bin/bash monopoly || true
-sudo mkdir -p /var/lib/monopoly-run
-sudo chown monopoly:monopoly /var/lib/monopoly-run /opt/monopoly-run
+sudo mkdir -p /opt/monopoly-run /var/lib/monopoly-run
+sudo chown monopoly:monopoly /opt/monopoly-run /var/lib/monopoly-run
 ```
 
 ## 3. Install the app
 
+`git clone` always creates a **subdirectory** named after the repo (`CursorTest`). Do **not** use `git clone … .` into `/opt/monopoly-run` unless that directory is completely empty and owned by you — on a fresh server, clone into the parent folder instead:
+
 ```bash
 sudo -u monopoly -H bash -c '
   cd /opt/monopoly-run
-  git clone https://github.com/markysamson/CursorTest.git .
+  git clone https://github.com/markysamson/CursorTest.git
+  cd CursorTest
   git checkout cursor/monopoly-run-app-9709
   npm ci
 '
+sudo chown -R monopoly:monopoly /opt/monopoly-run/CursorTest
 ```
+
+All later commands use **`/opt/monopoly-run/CursorTest`** as the app directory.
 
 ### Production config (`.env` file)
 
@@ -56,7 +69,7 @@ The app reads **`/var/lib/monopoly-run/.env`** at startup (see the systemd unit)
 Create it from the template:
 
 ```bash
-sudo cp /opt/monopoly-run/deploy/aws/env.example /var/lib/monopoly-run/.env
+sudo cp /opt/monopoly-run/CursorTest/deploy/aws/env.example /var/lib/monopoly-run/.env
 sudo chown monopoly:monopoly /var/lib/monopoly-run/.env
 sudo chmod 600 /var/lib/monopoly-run/.env
 ```
@@ -109,7 +122,7 @@ Build and seed (first time):
 
 ```bash
 sudo -u monopoly -H bash -c '
-  cd /opt/monopoly-run
+  cd /opt/monopoly-run/CursorTest
   set -a && source /var/lib/monopoly-run/.env && set +a
   npm run setup:prod
   npm run build
@@ -119,8 +132,8 @@ sudo -u monopoly -H bash -c '
 ## 4. systemd
 
 ```bash
-sudo cp /opt/monopoly-run/deploy/aws/monopoly-run.service /etc/systemd/system/
-sudo chmod +x /opt/monopoly-run/scripts/start-prod.sh
+sudo cp /opt/monopoly-run/CursorTest/deploy/aws/monopoly-run.service /etc/systemd/system/
+sudo chmod +x /opt/monopoly-run/CursorTest/scripts/start-prod.sh
 sudo systemctl daemon-reload
 sudo systemctl enable --now monopoly-run
 sudo systemctl status monopoly-run
@@ -133,7 +146,7 @@ If the service **restart loops** (`activating (auto-restart)`), read the real er
 sudo journalctl -u monopoly-run -n 40 --no-pager
 ```
 
-Common causes: **no production build** (run `npm run build` as `monopoly`), **`HOSTNAME=0.0.0.0` in `.env`** (remove it; use `MONOPOLY_BIND_HOST=0.0.0.0`), or wrong ownership on `/opt/monopoly-run` / `/var/lib/monopoly-run`.
+Common causes: **no production build** (run `npm run build` in `/opt/monopoly-run/CursorTest` as `monopoly`), **`HOSTNAME=0.0.0.0` in `.env`** (remove it; use `MONOPOLY_BIND_HOST=0.0.0.0`), wrong **WorkingDirectory** in systemd (must be `CursorTest`), or wrong ownership on `/opt/monopoly-run/CursorTest` / `/var/lib/monopoly-run`.
 
 ## 5. Caddy (reverse proxy)
 
@@ -154,7 +167,7 @@ sudo apt update && sudo apt install -y caddy
 Use this if you **do not have a domain yet**. You will **not** see port **443** open — that is expected. Browse **`http://YOUR_PUBLIC_IP`** (not https).
 
 ```bash
-sudo cp /opt/monopoly-run/deploy/aws/Caddyfile.http-ip /etc/caddy/Caddyfile
+sudo cp /opt/monopoly-run/CursorTest/deploy/aws/Caddyfile.http-ip /etc/caddy/Caddyfile
 sudo caddy validate --config /etc/caddy/Caddyfile
 sudo systemctl restart caddy
 sudo ss -tlnp | grep caddy
@@ -173,7 +186,7 @@ On the instance, get your IP and edit the Caddyfile:
 
 ```bash
 curl -s http://169.254.169.254/latest/meta-data/public-ipv4
-sudo cp /opt/monopoly-run/deploy/aws/Caddyfile.nip-io /etc/caddy/Caddyfile
+sudo cp /opt/monopoly-run/CursorTest/deploy/aws/Caddyfile.nip-io /etc/caddy/Caddyfile
 sudo nano /etc/caddy/Caddyfile   # replace 203.0.113.50.nip.io with YOUR_IP.nip.io
 sudo caddy validate --config /etc/caddy/Caddyfile
 sudo systemctl restart caddy
@@ -184,11 +197,11 @@ After ~1 minute, use **`https://203.0.113.50.nip.io`** (your IP in the name). Ca
 ### Option B — Production with your own domain (HTTPS on **443**)
 
 1. Point DNS **A record** at the EC2 public IP (or Elastic IP).
-2. Edit `deploy/aws/Caddyfile` in the repo: replace **`YOUR_DOMAIN`** with e.g. `run.yourclub.org` (must not stay as the placeholder).
-3. Install config and **restart** (not just reload, after first setup):
+2. Edit `deploy/aws/Caddyfile` under **`/opt/monopoly-run/CursorTest`**: replace **`YOUR_DOMAIN`** with e.g. `run.yourclub.org`.
+3. Install config and **restart**:
 
 ```bash
-sudo cp /opt/monopoly-run/deploy/aws/Caddyfile /etc/caddy/Caddyfile
+sudo cp /opt/monopoly-run/CursorTest/deploy/aws/Caddyfile /etc/caddy/Caddyfile
 sudo caddy validate --config /etc/caddy/Caddyfile
 sudo systemctl restart caddy
 sudo ss -tlnp | grep caddy
@@ -200,20 +213,22 @@ If certificate issuance fails, check: DNS propagated, security group allows **80
 
 ## 6. Use the app
 
-- Manager: `https://your-domain/admin`
-- Teams: `https://your-domain/team` (phones need **HTTPS** for GPS)
+- Manager: `https://your-domain/admin` (or `http://YOUR_PUBLIC_IP/admin` for Option A)
+- Teams: `/team` on the same base URL (phones need **HTTPS** for GPS — use Option A2 or B)
 
 ## Updates
 
 ```bash
 sudo -u monopoly -H bash -c '
-  cd /opt/monopoly-run
+  cd /opt/monopoly-run/CursorTest
   git pull
   npm ci
   set -a && source /var/lib/monopoly-run/.env && set +a
   npm run setup:prod
   npm run build
 '
+sudo cp /opt/monopoly-run/CursorTest/deploy/aws/monopoly-run.service /etc/systemd/system/
+sudo systemctl daemon-reload
 sudo systemctl restart monopoly-run
 ```
 
@@ -230,7 +245,7 @@ Optional: **EBS snapshot** in the EC2 console before a big event.
 Run on the server:
 
 ```bash
-bash /opt/monopoly-run/deploy/aws/diagnose.sh
+bash /opt/monopoly-run/CursorTest/deploy/aws/diagnose.sh
 ```
 
 ### Caddy “running” but no port 443 (or site unreachable)
@@ -243,21 +258,18 @@ Work through this order:
    ```
    If this fails, fix `monopoly-run`: `sudo journalctl -u monopoly-run -n 40 --no-pager`
 
-2. **443 only appears with a working domain config** — the IP-only test file (`Caddyfile.http-ip`) listens on **80 only**. No 443 is normal until Option B is set up with real DNS.
+2. **443 only appears with a working domain config** — the IP-only test file (`Caddyfile.http-ip`) listens on **80 only**. No 443 is normal until Option A2 or B.
 
 3. **Placeholder domain** — if `/etc/caddy/Caddyfile` still says `run.example.com` or `YOUR_DOMAIN`, Caddy will not serve your site. Edit the file, then `sudo caddy validate --config /etc/caddy/Caddyfile` and `sudo systemctl restart caddy`.
 
-4. **AWS Security group** (most common external failure) — EC2 → your instance → **Security** tab → security group → **Inbound rules** must include:
-   - TCP **80** from `0.0.0.0/0` (or your IP for testing)
-   - TCP **443** from `0.0.0.0/0` (when using HTTPS)
-   - The instance **OS firewall** on Ubuntu is usually open; if you enabled `ufw`, allow 80/443: `sudo ufw allow 80,443/tcp`
+4. **AWS Security group** — inbound TCP **80** and **443** from `0.0.0.0/0` (when testing publicly). If you use `ufw`: `sudo ufw allow 80,443/tcp`
 
-5. **Check what is actually listening** (prefer over `netstat -a`):
+5. **Check listeners:**
    ```bash
    sudo ss -tlnp | grep -E 'caddy|:3000'
    ```
 
-6. **Caddy logs** — look for certificate or config errors:
+6. **Caddy logs:**
    ```bash
    sudo journalctl -u caddy -n 50 --no-pager
    ```
@@ -265,7 +277,8 @@ Work through this order:
 | Issue | Fix |
 |--------|-----|
 | Cannot SSH | Security group must allow 22 from your IP; use `ubuntu` user and `.pem` key |
-| No :443 in `ss` / netstat | Use domain Caddyfile + DNS, or use `Caddyfile.http-ip` and **http://IP** on port 80 |
+| systemd can’t find app | `WorkingDirectory` must be `/opt/monopoly-run/CursorTest`; re-copy `monopoly-run.service` |
+| No :443 in `ss` | Use nip.io or a domain, or use **http://IP** on port 80 |
 | Site unreachable from browser | Security group 80/443; app health on :3000; Caddy on :80 |
 | Login loops | Use HTTPS; set `AUTH_SECRET` and restart `monopoly-run` |
 | Empty map / boards | Run `npm run setup:prod` with `.env` loaded |

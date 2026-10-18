@@ -6,11 +6,11 @@ After=network.target
 Type=simple
 User=monopoly
 Group=monopoly
-WorkingDirectory=/opt/monopoly-run
+WorkingDirectory=/opt/monopoly-run/CursorTest
 EnvironmentFile=/var/lib/monopoly-run/.env
 Environment=MONOPOLY_BIND_HOST=0.0.0.0
 Environment=PORT=3000
-ExecStart=/usr/bin/bash /opt/monopoly-run/scripts/start-prod.sh
+ExecStart=/usr/bin/bash /opt/monopoly-run/CursorTest/scripts/start-prod.sh
 StandardOutput=journal
 StandardError=journal
 Restart=on-failure

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Run on the EC2 instance: bash /opt/monopoly-run/deploy/aws/diagnose.sh
+# Run on the EC2 instance: bash /opt/monopoly-run/CursorTest/deploy/aws/diagnose.sh
+APP_DIR="${APP_DIR:-/opt/monopoly-run/CursorTest}"
 
 set -euo pipefail
 
