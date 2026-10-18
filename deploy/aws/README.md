@@ -116,6 +116,12 @@ sudo chmod 600 /var/lib/monopoly-run/.env
 
 Replace `CHOOSE-A-STRONG-PASSWORD` in that one-liner before running, or edit the file once with `nano` to set only the admin password.
 
+**t3.micro (1GB RAM):** add swap once before building, or `next build` may stop mid-way with no error:
+
+```bash
+sudo bash /opt/monopoly-run/CursorTest/deploy/aws/setup-swap.sh
+```
+
 Build and seed (first time — **required before systemd will stay up**):
 
 ```bash
@@ -124,6 +130,8 @@ sudo -u monopoly -H bash -c '
   npm run build:prod
 '
 ```
+
+Build uses **`next build --webpack`** (lower memory than Turbopack). It can take several minutes on a micro instance.
 
 Confirm the build exists:
 
@@ -295,4 +303,5 @@ Work through this order:
 | `Location` table does not exist (seed) | Migrations and seed must use the same DB — pull latest, then `npm run setup:prod` (not seed alone). Remove stray `CursorTest/prisma/dev.db` or `CursorTest/dev.db` if created by mistake. |
 | `EADDRNOTAVAIL` / public IP on port 3000 | Remove `HOSTNAME`, `HOST`, or `MONOPOLY_BIND_HOST` from `/var/lib/monopoly-run/.env` if set to your public IP. Pull latest and restart — app binds `0.0.0.0` only. |
 | No production build in `.next` | As `monopoly`: `cd /opt/monopoly-run/CursorTest && npm run build:prod`. Check `.next/BUILD_ID` exists, then `sudo systemctl restart monopoly-run`. |
+| Build stops at “Creating an optimized production build” | Usually **OOM** on t3.micro — run `sudo bash …/deploy/aws/setup-swap.sh`, pull latest (webpack build), retry `npm run build:prod`. |
 | Uploads 404 | `MONOPOLY_DATA_DIR=/var/lib/monopoly-run` and directory writable by `monopoly` user |
