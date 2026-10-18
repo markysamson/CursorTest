@@ -4,8 +4,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-if [[ ! -d "$ROOT/.next" ]]; then
-  echo "Missing .next build. Run as monopoly: cd /opt/monopoly-run/CursorTest && npm run build" >&2
+if [[ ! -f "$ROOT/.next/BUILD_ID" ]]; then
+  echo "Missing production build (.next/BUILD_ID)." >&2
+  echo "Run as monopoly: cd /opt/monopoly-run/CursorTest && npm run build:prod" >&2
   exit 1
 fi
 

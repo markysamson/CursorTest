@@ -14,6 +14,15 @@ echo "---"
 systemctl is-active caddy 2>/dev/null && systemctl --no-pager status caddy || echo "caddy not active"
 
 echo ""
+echo "=== Production build ==="
+BUILD_ID="${APP_DIR}/.next/BUILD_ID"
+if [[ -f "$BUILD_ID" ]]; then
+  echo "OK: $BUILD_ID ($(cat "$BUILD_ID"))"
+else
+  echo "MISSING: $BUILD_ID — run: sudo -u monopoly bash -c 'cd ${APP_DIR} && npm run build:prod'"
+fi
+
+echo ""
 echo "=== App health (localhost:3000) ==="
 curl -sS -m 3 http://127.0.0.1:3000/api/health || echo "FAILED — start/fix monopoly-run first"
 

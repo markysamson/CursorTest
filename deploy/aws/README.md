@@ -116,21 +116,30 @@ sudo chmod 600 /var/lib/monopoly-run/.env
 
 Replace `CHOOSE-A-STRONG-PASSWORD` in that one-liner before running, or edit the file once with `nano` to set only the admin password.
 
-Build and seed (first time):
+Build and seed (first time — **required before systemd will stay up**):
 
 ```bash
 sudo -u monopoly -H bash -c '
   cd /opt/monopoly-run/CursorTest
-  npm run setup:prod
-  npm run build
+  npm run build:prod
 '
 ```
+
+Confirm the build exists:
+
+```bash
+ls -la /opt/monopoly-run/CursorTest/.next/BUILD_ID
+```
+
+If that file is missing, `monopoly-run` will crash with “Could not find a production build”.
 
 `setup:prod` / `prisma migrate deploy` read **`/var/lib/monopoly-run/.env`** automatically (via `MONOPOLY_DATA_DIR` → `data.db`). You can still `source` that file first if you prefer.
 
 If migrate says **`datasource.url property is required`**, your env file is missing or unreadable — check `MONOPOLY_DATA_DIR` in `/var/lib/monopoly-run/.env`, or add `DATABASE_URL="file:/var/lib/monopoly-run/data.db"`.
 
 ## 4. systemd
+
+**Only after** `.next/BUILD_ID` exists (see step 3).
 
 ```bash
 sudo cp /opt/monopoly-run/CursorTest/deploy/aws/monopoly-run.service /etc/systemd/system/
@@ -225,8 +234,7 @@ sudo -u monopoly -H bash -c '
   git pull
   npm ci
   set -a && source /var/lib/monopoly-run/.env && set +a
-  npm run setup:prod
-  npm run build
+  npm run build:prod
 '
 sudo cp /opt/monopoly-run/CursorTest/deploy/aws/monopoly-run.service /etc/systemd/system/
 sudo systemctl daemon-reload
@@ -286,4 +294,5 @@ Work through this order:
 | `datasource.url property is required` | Create `/var/lib/monopoly-run/.env` with `MONOPOLY_DATA_DIR`; or set `DATABASE_URL="file:/var/lib/monopoly-run/data.db"` |
 | `Location` table does not exist (seed) | Migrations and seed must use the same DB — pull latest, then `npm run setup:prod` (not seed alone). Remove stray `CursorTest/prisma/dev.db` or `CursorTest/dev.db` if created by mistake. |
 | `EADDRNOTAVAIL` / public IP on port 3000 | Remove `HOSTNAME`, `HOST`, or `MONOPOLY_BIND_HOST` from `/var/lib/monopoly-run/.env` if set to your public IP. Pull latest and restart — app binds `0.0.0.0` only. |
+| No production build in `.next` | As `monopoly`: `cd /opt/monopoly-run/CursorTest && npm run build:prod`. Check `.next/BUILD_ID` exists, then `sudo systemctl restart monopoly-run`. |
 | Uploads 404 | `MONOPOLY_DATA_DIR=/var/lib/monopoly-run` and directory writable by `monopoly` user |
