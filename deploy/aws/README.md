@@ -304,4 +304,5 @@ Work through this order:
 | `EADDRNOTAVAIL` / public IP on port 3000 | Remove `HOSTNAME`, `HOST`, or `MONOPOLY_BIND_HOST` from `/var/lib/monopoly-run/.env` if set to your public IP. Pull latest and restart — app binds `0.0.0.0` only. |
 | No production build in `.next` | As `monopoly`: `cd /opt/monopoly-run/CursorTest && npm run build:prod`. Check `.next/BUILD_ID` exists, then `sudo systemctl restart monopoly-run`. |
 | Build stops at “Creating an optimized production build” | Usually **OOM** on t3.micro — run `sudo bash …/deploy/aws/setup-swap.sh`, pull latest (webpack build), retry `npm run build:prod`. |
+| Admin login OK but “Failed to load dashboard” | On server: `curl -s http://127.0.0.1:3000/api/health` — if `database: error`, fix DB path/permissions (`MONOPOLY_DATA_DIR`, `sudo chown -R monopoly:monopoly /var/lib/monopoly-run`) and run `npm run setup:prod`. Check `sudo journalctl -u monopoly-run -n 30`. |
 | Uploads 404 | `MONOPOLY_DATA_DIR=/var/lib/monopoly-run` and directory writable by `monopoly` user |

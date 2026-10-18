@@ -8,6 +8,7 @@ User=monopoly
 Group=monopoly
 WorkingDirectory=/opt/monopoly-run/CursorTest
 EnvironmentFile=/var/lib/monopoly-run/.env
+Environment=MONOPOLY_DATA_DIR=/var/lib/monopoly-run
 Environment=PORT=3000
 ExecStart=/usr/bin/bash /opt/monopoly-run/CursorTest/scripts/start-prod.sh
 StandardOutput=journal

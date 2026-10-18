@@ -1,5 +1,16 @@
 import path from "path";
 
+function stripEnvQuotes(value: string): string {
+  const t = value.trim();
+  if (
+    (t.startsWith('"') && t.endsWith('"')) ||
+    (t.startsWith("'") && t.endsWith("'"))
+  ) {
+    return t.slice(1, -1);
+  }
+  return t;
+}
+
 function resolveFileDatabaseUrl(url: string): string {
   const prefix = "file:";
   if (!url.startsWith(prefix)) {
@@ -18,7 +29,8 @@ export function getMonopolyDataDir(): string | null {
   if (!raw) {
     return null;
   }
-  return path.isAbsolute(raw) ? raw : path.join(process.cwd(), raw);
+  const dir = stripEnvQuotes(raw);
+  return path.isAbsolute(dir) ? dir : path.join(process.cwd(), dir);
 }
 
 export function usesExternalDataDir(): boolean {
@@ -28,7 +40,7 @@ export function usesExternalDataDir(): boolean {
 export function resolveDatabaseUrl(): string {
   const fromEnv = process.env.DATABASE_URL?.trim();
   if (fromEnv) {
-    return resolveFileDatabaseUrl(fromEnv);
+    return resolveFileDatabaseUrl(stripEnvQuotes(fromEnv));
   }
   const dataDir = getMonopolyDataDir();
   if (dataDir) {

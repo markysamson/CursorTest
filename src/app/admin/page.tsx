@@ -32,11 +32,11 @@ type Visit = {
   location: { name: string };
 };
 type Dashboard = {
-  game: Game & {
+  game: (Game & {
     teams: Team[];
     ownerships: Ownership[];
     visits: Visit[];
-  };
+  }) | null;
   leaderboard: (Team & { propertiesOwned: number })[];
   mapProperties: MapPropertyMarker[];
   mapTeams: MapTeamMarker[];
@@ -155,6 +155,27 @@ export default function AdminDashboardPage() {
   }
 
   const { game, leaderboard, mapProperties, mapTeams, teamsWithoutLocation } = data;
+
+  if (!game) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-4">
+        <ClouderaLogo href="/" size="sm" />
+        <h1 className="mt-6 text-xl font-bold text-cloudera-navy">No game in the database</h1>
+        <p className="mt-2 text-center text-sm font-medium text-cloudera-gray">
+          Run seed on the server:{" "}
+          <code className="text-xs">cd /opt/monopoly-run/CursorTest && npm run setup:prod</code>
+        </p>
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="btn-primary mt-6 rounded-xl px-4 py-2 text-sm"
+        >
+          Retry
+        </button>
+      </main>
+    );
+  }
+
   const boardSet = normalizeBoardSet(game.boardSet);
   const boardCfg = getBoardSetConfig(boardSet);
 

@@ -110,8 +110,15 @@ export async function GET() {
   } catch (error) {
     console.error("[admin/dashboard]", error);
     const hint = prismaSchemaHelpMessage(error);
+    const detail = error instanceof Error ? error.message : String(error);
+    const safeDetail =
+      detail.length > 240 ? `${detail.slice(0, 240)}…` : detail;
     return NextResponse.json(
-      { error: hint ?? "Failed to load dashboard. Check server logs." },
+      {
+        error:
+          hint ??
+          `Failed to load dashboard: ${safeDetail}. On the server: sudo journalctl -u monopoly-run -n 30 --no-pager`,
+      },
       { status: hint ? 503 : 500 },
     );
   }
