@@ -123,11 +123,14 @@ Build and seed (first time):
 ```bash
 sudo -u monopoly -H bash -c '
   cd /opt/monopoly-run/CursorTest
-  set -a && source /var/lib/monopoly-run/.env && set +a
   npm run setup:prod
   npm run build
 '
 ```
+
+`setup:prod` / `prisma migrate deploy` read **`/var/lib/monopoly-run/.env`** automatically (via `MONOPOLY_DATA_DIR` → `data.db`). You can still `source` that file first if you prefer.
+
+If migrate says **`datasource.url property is required`**, your env file is missing or unreadable — check `MONOPOLY_DATA_DIR` in `/var/lib/monopoly-run/.env`, or add `DATABASE_URL="file:/var/lib/monopoly-run/data.db"`.
 
 ## 4. systemd
 
@@ -281,5 +284,6 @@ Work through this order:
 | No :443 in `ss` | Use nip.io or a domain, or use **http://IP** on port 80 |
 | Site unreachable from browser | Security group 80/443; app health on :3000; Caddy on :80 |
 | Login loops | Use HTTPS; set `AUTH_SECRET` and restart `monopoly-run` |
-| Empty map / boards | Run `npm run setup:prod` with `.env` loaded |
+| Empty map / boards | Run `npm run setup:prod` from `CursorTest` |
+| `datasource.url property is required` | Create `/var/lib/monopoly-run/.env` with `MONOPOLY_DATA_DIR`; or set `DATABASE_URL="file:/var/lib/monopoly-run/data.db"` |
 | Uploads 404 | `MONOPOLY_DATA_DIR=/var/lib/monopoly-run` and directory writable by `monopoly` user |
