@@ -7,8 +7,9 @@ const nextConfig: NextConfig = {
     "@prisma/adapter-better-sqlite3",
     "@prisma/client",
   ],
-  cacheComponents: true,
-  partialPrefetching: true,
+  images: {
+    unoptimized: true,
+  },
   turbopack: {
     rules: {
       "*.css": {

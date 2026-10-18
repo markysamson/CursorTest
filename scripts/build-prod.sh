@@ -18,6 +18,12 @@ next build --webpack
 BUILD_EXIT=$?
 set -e
 
+CSS_COUNT=$(find "$ROOT/.next/static/css" -name '*.css' 2>/dev/null | wc -l)
+if [[ "${CSS_COUNT:-0}" -lt 1 ]]; then
+  echo "Build failed: no CSS in .next/static/css (Tailwind did not compile). Check postcss.config.mjs" >&2
+  exit 1
+fi
+
 if [[ ! -f "$ROOT/.next/BUILD_ID" ]]; then
   echo "Build failed (exit $BUILD_EXIT): .next/BUILD_ID missing" >&2
   if [[ "$BUILD_EXIT" -eq 137 ]] || [[ "$BUILD_EXIT" -eq 143 ]]; then

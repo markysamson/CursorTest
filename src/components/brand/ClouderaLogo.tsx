@@ -22,6 +22,7 @@ export function ClouderaLogo({ href = "/", size = "md" }: Props) {
       alt="Cloudera"
       width={width}
       height={height}
+      unoptimized
       className="h-auto w-auto max-w-full"
       priority={size === "lg"}
     />

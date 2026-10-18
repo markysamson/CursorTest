@@ -80,13 +80,17 @@ export function RunMap({
   );
 
   return (
-    <div className={`overflow-hidden rounded-2xl border border-cloudera-border ${className}`}>
+    <div
+      className={`overflow-hidden rounded-2xl border border-cloudera-border ${className}`}
+      style={{ minHeight: "18rem" }}
+    >
       <MapContainer
         key={boundsKey}
         center={LONDON_CENTER}
         zoom={13}
         scrollWheelZoom
         className={`${heightClassName} w-full z-0`}
+        style={{ minHeight: "18rem", height: "100%" }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
