@@ -147,7 +147,7 @@ If the service **restart loops** (`activating (auto-restart)`), read the real er
 sudo journalctl -u monopoly-run -n 40 --no-pager
 ```
 
-Common causes: **no production build** (run `npm run build` in `/opt/monopoly-run/CursorTest` as `monopoly`), **`HOSTNAME=0.0.0.0` in `.env`** (remove it; use `MONOPOLY_BIND_HOST=0.0.0.0`), wrong **WorkingDirectory** in systemd (must be `CursorTest`), or wrong ownership on `/opt/monopoly-run/CursorTest` / `/var/lib/monopoly-run`.
+Common causes: **no production build** (run `npm run build` in `/opt/monopoly-run/CursorTest` as `monopoly`), **public IP in `.env`** as `HOSTNAME` / `HOST` / `MONOPOLY_BIND_HOST` (remove those lines), wrong **WorkingDirectory** in systemd (must be `CursorTest`), or wrong ownership on `/opt/monopoly-run/CursorTest` / `/var/lib/monopoly-run`.
 
 ## 5. Caddy (reverse proxy)
 
