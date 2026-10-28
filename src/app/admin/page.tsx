@@ -240,7 +240,7 @@ export default function AdminDashboardPage() {
             Final scores are below. Choose a board for the next run, then create a new game to add teams
             and start again.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {(Object.keys(BOARD_SET_CONFIG) as BoardSetId[]).map((id) => {
               const cfg = BOARD_SET_CONFIG[id];
               const selected = newGameBoard === id;
@@ -281,7 +281,7 @@ export default function AdminDashboardPage() {
           <p className="mt-1 text-sm font-medium text-cloudera-gray">
             Pick the route before you start the run. Teams will only see stops on the selected board.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {(Object.keys(BOARD_SET_CONFIG) as BoardSetId[]).map((id) => {
               const cfg = BOARD_SET_CONFIG[id];
               const selected = boardSet === id;

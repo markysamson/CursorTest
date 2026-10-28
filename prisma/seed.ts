@@ -1,5 +1,6 @@
 import { createPrismaClient } from "../src/lib/prisma-client";
 import {
+  CANARY_WHARF_LOCATIONS,
   CITY_OF_LONDON_LOCATIONS,
   LONDON_LOCATIONS,
   SAFFRON_WALDEN_LOCATIONS,
@@ -11,6 +12,7 @@ const SETS = [
   { boardSet: "LONDON_FULL" as const, locations: LONDON_LOCATIONS },
   { boardSet: "CITY_OF_LONDON" as const, locations: CITY_OF_LONDON_LOCATIONS },
   { boardSet: "SAFFRON_WALDEN" as const, locations: SAFFRON_WALDEN_LOCATIONS },
+  { boardSet: "CANARY_WHARF" as const, locations: CANARY_WHARF_LOCATIONS },
 ];
 
 async function main() {

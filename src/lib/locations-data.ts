@@ -60,6 +60,24 @@ export const SAFFRON_WALDEN_LOCATIONS = [
   { name: "Common Hill", colorGroup: "yellow", price: 280, rent: 28, latitude: 52.0255, longitude: 0.2468, boardOrder: 14 },
 ] as const;
 
+/** Compact board around Canary Wharf and West India Quay — ~2–3 hours on foot. */
+export const CANARY_WHARF_LOCATIONS = [
+  { name: "Westferry Circus", colorGroup: "brown", price: 80, rent: 8, latitude: 51.5068, longitude: -0.0282, boardOrder: 1 },
+  { name: "Montgomery Street", colorGroup: "brown", price: 80, rent: 8, latitude: 51.5069, longitude: -0.0186, boardOrder: 2 },
+  { name: "Cabot Square", colorGroup: "light-blue", price: 100, rent: 10, latitude: 51.5051, longitude: -0.0214, boardOrder: 3 },
+  { name: "Canada Square", colorGroup: "light-blue", price: 100, rent: 10, latitude: 51.5033, longitude: -0.0197, boardOrder: 4 },
+  { name: "Churchill Place", colorGroup: "light-blue", price: 120, rent: 12, latitude: 51.5041, longitude: -0.0144, boardOrder: 5 },
+  { name: "West India Quay", colorGroup: "pink", price: 140, rent: 14, latitude: 51.5077, longitude: -0.0223, boardOrder: 6 },
+  { name: "Hertsmere Road", colorGroup: "pink", price: 140, rent: 14, latitude: 51.5082, longitude: -0.0255, boardOrder: 7 },
+  { name: "Bank Street", colorGroup: "pink", price: 160, rent: 16, latitude: 51.5036, longitude: -0.0169, boardOrder: 8 },
+  { name: "Adams Place", colorGroup: "orange", price: 180, rent: 18, latitude: 51.5058, longitude: -0.0162, boardOrder: 9 },
+  { name: "Marsh Wall", colorGroup: "orange", price: 180, rent: 18, latitude: 51.5012, longitude: -0.0178, boardOrder: 10 },
+  { name: "South Colonnade", colorGroup: "orange", price: 200, rent: 20, latitude: 51.5024, longitude: -0.0231, boardOrder: 11 },
+  { name: "Jubilee Place", colorGroup: "red", price: 220, rent: 22, latitude: 51.5038, longitude: -0.0188, boardOrder: 12 },
+  { name: "Crossrail Place", colorGroup: "red", price: 240, rent: 24, latitude: 51.5056, longitude: -0.0158, boardOrder: 13 },
+  { name: "Harbour Exchange", colorGroup: "yellow", price: 280, rent: 28, latitude: 51.4998, longitude: -0.0135, boardOrder: 14 },
+] as const;
+
 export const COLOR_GROUP_STYLES: Record<string, { bg: string; border: string; label: string }> = {
   brown: { bg: "bg-amber-900/90", border: "border-amber-950", label: "Brown" },
   "light-blue": { bg: "bg-sky-400/90", border: "border-sky-600", label: "Light blue" },

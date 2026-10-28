@@ -7,7 +7,7 @@ A GPS-verified team activity inspired by the London Monopoly board. Managers cre
 - **Manager console** (`/admin`): create teams with PINs, start/end the run, live leaderboard, property ownership with selfies, activity feed
 - **Team app** (`/team`): mobile-friendly board list, **interactive map** (your team + all properties), continuous GPS tracking, geofenced check-in, selfie capture to buy unowned properties, automatic rent payments
 - **Live maps**: OpenStreetMap via Leaflet — managers see every team’s last reported position; teams see themselves and all property squares
-- **Three boards:** Full London (22 stops), **City of London** (14 stops around Liverpool Street), or **Saffron Walden** (14 stops in Essex) — manager picks in SETUP before starting the run
+- **Four boards:** Full London (22 stops), **City of London** (14 stops), **Canary Wharf** (14 stops), or **Saffron Walden** (14 stops in Essex) — manager picks in SETUP before starting the run
 
 ## Quick start
 

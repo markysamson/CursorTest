@@ -1,4 +1,9 @@
-export const BOARD_SET_IDS = ["LONDON_FULL", "CITY_OF_LONDON", "SAFFRON_WALDEN"] as const;
+export const BOARD_SET_IDS = [
+  "LONDON_FULL",
+  "CITY_OF_LONDON",
+  "SAFFRON_WALDEN",
+  "CANARY_WHARF",
+] as const;
 
 export type BoardSetId = (typeof BOARD_SET_IDS)[number];
 
@@ -32,6 +37,14 @@ export const BOARD_SET_CONFIG: Record<
   SAFFRON_WALDEN: {
     label: "Saffron Walden",
     subtitle: "14-stop Essex market town trail from Market Square",
+    startingBalance: 1200,
+    geofenceRadiusM: 100,
+    suggestedDuration: "2–3 hours",
+    stopCount: 14,
+  },
+  CANARY_WHARF: {
+    label: "Canary Wharf",
+    subtitle: "14-stop board around the Isle of Dogs estate",
     startingBalance: 1200,
     geofenceRadiusM: 100,
     suggestedDuration: "2–3 hours",
