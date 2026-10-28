@@ -63,6 +63,18 @@ sudo chown -R monopoly:monopoly /opt/monopoly-run/CursorTest
 
 All later commands use **`/opt/monopoly-run/CursorTest`** as the app directory.
 
+### Prisma on the server (important)
+
+Always **`cd /opt/monopoly-run/CursorTest`** first. This project uses **Prisma 7** from `package.json`.
+
+| Do this | Not this |
+|---------|----------|
+| `npm run db:generate` | `npx prisma generate` (may download **Prisma 8 RC**, which has no `generate` command) |
+| `npm run setup:prod` | Random `npx prisma …` from your home directory |
+| `npm ci` then `npm run build:prod` | Installing Prisma globally |
+
+If you already ran bare `npx prisma` and it offered Prisma 8, ignore it — use the npm scripts in the app folder.
+
 ### Production config (`.env` file)
 
 The app reads **`/var/lib/monopoly-run/.env`** at startup (see the systemd unit). That file holds secrets and paths — it is **not** in git.
