@@ -1,0 +1,14 @@
+# Free HTTPS without buying a domain — uses nip.io wildcard DNS.
+# If your EC2 public IP is 203.0.113.50, the hostname is 203.0.113.50.nip.io
+# (same digits, dots kept). Replace the line below with YOUR_IP.nip.io
+#
+# curl -s http://169.254.169.254/latest/meta-data/public-ipv4   # show IP on EC2
+# sudo cp /opt/monopoly-run/CursorTest/deploy/aws/Caddyfile.nip-io /etc/caddy/Caddyfile
+# edit /etc/caddy/Caddyfile — set the hostname to YOUR_IP.nip.io
+# sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl restart caddy
+# Open https://YOUR_IP.nip.io/admin  (phones get GPS over HTTPS)
+
+203.0.113.50.nip.io {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}
