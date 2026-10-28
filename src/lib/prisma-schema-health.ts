@@ -2,7 +2,7 @@ import { BoardSet as PrismaBoardSetEnum } from "@/generated/prisma/enums";
 import { BOARD_SET_IDS } from "@/lib/board-sets";
 
 export const PRISMA_REFRESH_HINT =
-  "Stop the dev server, then run: npx prisma generate && npm run db:seed && npm run dev";
+  "Stop the dev server, then from the app folder run: npm run db:generate && npm run db:seed && npm run dev (do not use bare npx prisma — it may install Prisma 8)";
 
 /** App board list vs Prisma enum (e.g. after schema change without restarting dev). */
 export function boardSetPrismaOutOfSyncMessage(): string | null {

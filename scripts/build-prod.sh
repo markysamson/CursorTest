@@ -8,7 +8,7 @@ bash scripts/rebuild-sqlite.sh
 
 echo "Running migrations and seed…"
 tsx scripts/ensure-data-dir.ts
-npx prisma migrate deploy
+npm exec prisma migrate deploy
 tsx prisma/seed.ts
 
 echo "Building Next.js production bundle (webpack — fits t3.micro better than Turbopack)…"
