@@ -2,6 +2,11 @@ import { getTeamSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { distanceMeters } from "@/lib/geo";
 import { boardSetLabel } from "@/lib/board-sets";
+import {
+  effectiveRent,
+  hotelCost,
+  teamOwnsFullColorSet,
+} from "@/lib/monopoly-rules";
 import { updateTeamLocation } from "@/lib/team-location";
 import { NextResponse } from "next/server";
 
@@ -28,7 +33,6 @@ export async function GET(request: Request) {
     }),
     prisma.propertyOwnership.findMany({
       where: { gameId: session.gameId },
-      include: { team: { select: { id: true, name: true } } },
     }),
     prisma.visit.findMany({
       where: { gameId: session.gameId, teamId: session.teamId },
@@ -57,39 +61,85 @@ export async function GET(request: Request) {
 
   const locationStates = locations.map((loc) => {
     const own = ownershipByLocation.get(loc.id);
+    const ownedByYou = own?.teamId === team.id;
+    const ownedByOther = !!own && !ownedByYou;
+
     let distanceM: number | null = null;
     let inRange = false;
     if (userLat != null && userLng != null && !Number.isNaN(userLat) && !Number.isNaN(userLng)) {
       distanceM = Math.round(distanceMeters(userLat, userLng, loc.latitude, loc.longitude));
       inRange = distanceM <= game.geofenceRadiusM;
     }
+
+    const rentDue = own ? effectiveRent(loc, own) : loc.rent;
+    const hasHotel = ownedByYou && !!own?.hasHotel;
+    const fullColorSet =
+      ownedByYou &&
+      teamOwnsFullColorSet({
+        teamId: team.id,
+        colorGroup: loc.colorGroup,
+        locations,
+        ownerships,
+      });
+    const canBuyHotel =
+      game.status === "ACTIVE" &&
+      inRange &&
+      ownedByYou &&
+      fullColorSet &&
+      !own?.hasHotel;
+
     let action: "purchase" | "rent" | "own" | "none" = "none";
     if (game.status === "ACTIVE" && inRange) {
       if (!own) action = "purchase";
-      else if (own.teamId === team.id) action = "own";
+      else if (ownedByYou) action = "own";
       else action = "rent";
     }
-    return {
-      ...loc,
-      owner: own ? { id: own.team.id, name: own.team.name, selfiePath: own.selfiePath } : null,
-      distanceM,
-      inRange,
-      action,
-    };
-  });
 
-  const ownedProperties = locationStates
-    .filter((loc) => loc.owner?.id === team.id)
-    .map((loc) => ({
+    return {
       id: loc.id,
       name: loc.name,
       colorGroup: loc.colorGroup,
       price: loc.price,
       rent: loc.rent,
-      selfiePath: loc.owner!.selfiePath,
+      rentDue,
       latitude: loc.latitude,
       longitude: loc.longitude,
-    }));
+      boardOrder: loc.boardOrder,
+      /** From this team's perspective only — rivals' ownership is hidden. */
+      possession: ownedByYou ? ("owned" as const) : ("unowned" as const),
+      ownedByYou,
+      hasHotel,
+      hotelCost: hotelCost(loc),
+      canBuyHotel,
+      distanceM,
+      inRange,
+      action,
+      /** For server-side logic only; never show rival names in UI */
+      _rivalOccupied: ownedByOther,
+    };
+  });
+
+  const ownedProperties = locationStates
+    .filter((loc) => loc.ownedByYou)
+    .map((loc) => {
+      const own = ownershipByLocation.get(loc.id)!;
+      return {
+        id: loc.id,
+        name: loc.name,
+        colorGroup: loc.colorGroup,
+        price: loc.price,
+        rent: loc.rent,
+        rentDue: effectiveRent(loc, own),
+        hasHotel: own.hasHotel,
+        selfiePath: own.selfiePath,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      };
+    });
+
+  const sanitizedLocations = locationStates.map(
+    ({ _rivalOccupied: _, ...rest }) => rest,
+  );
 
   return NextResponse.json({
     game: {
@@ -105,7 +155,7 @@ export async function GET(request: Request) {
       leaderName: team.leaderName,
       balance: team.balance,
     },
-    locations: locationStates,
+    locations: sanitizedLocations,
     ownedProperties,
     recentVisits,
   });

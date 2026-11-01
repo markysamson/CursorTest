@@ -4,8 +4,12 @@ export type MapPropertyMarker = {
   latitude: number;
   longitude: number;
   colorGroup: string;
+  /** Manager map: rival team name. Team map: omit or use possession only. */
   ownerName?: string | null;
   price?: number;
+  rent?: number;
+  /** Team view — never reveals other owners */
+  possession?: "owned" | "unowned";
 };
 
 export type MapTeamMarker = {

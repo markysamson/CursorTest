@@ -105,7 +105,7 @@ export function RunMap({
             <CircleMarker
               key={`prop-${p.id}`}
               center={[p.latitude, p.longitude]}
-              radius={p.ownerName ? 9 : 7}
+              radius={p.ownerName || p.possession === "owned" ? 9 : 7}
               pathOptions={{
                 color: "#fef3c7",
                 weight: 2,
@@ -117,9 +117,16 @@ export function RunMap({
                 <div className="text-sm text-slate-900">
                   <p className="font-semibold">{p.name}</p>
                   <p className="text-xs text-slate-600">{label}</p>
-                  {p.price != null && <p className="text-xs">Buy £{p.price}</p>}
+                  {p.price != null && <p className="text-xs">Price £{p.price}</p>}
+                  {p.rent != null && <p className="text-xs">Rent £{p.rent}</p>}
                   <p className="text-xs">
-                    {p.ownerName ? `Owned by ${p.ownerName}` : "Unowned"}
+                    {p.ownerName
+                      ? `Owned by ${p.ownerName}`
+                      : p.possession === "owned"
+                        ? "Owned (your team)"
+                        : p.possession === "unowned"
+                          ? "Unowned"
+                          : "Unowned"}
                   </p>
                 </div>
               </Popup>

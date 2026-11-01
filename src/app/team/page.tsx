@@ -14,12 +14,17 @@ type LocationState = {
   colorGroup: string;
   price: number;
   rent: number;
+  rentDue: number;
   latitude: number;
   longitude: number;
   distanceM: number | null;
   inRange: boolean;
   action: "purchase" | "rent" | "own" | "none";
-  owner: { id: string; name: string; selfiePath: string } | null;
+  possession: "owned" | "unowned";
+  ownedByYou: boolean;
+  hasHotel: boolean;
+  hotelCost: number;
+  canBuyHotel: boolean;
 };
 
 type OwnedProperty = {
@@ -28,6 +33,8 @@ type OwnedProperty = {
   colorGroup: string;
   price: number;
   rent: number;
+  rentDue: number;
+  hasHotel: boolean;
   selfiePath: string;
   latitude: number;
   longitude: number;
@@ -112,7 +119,10 @@ export default function TeamAppPage() {
     };
   }, [geo?.latitude, geo?.longitude]);
 
-  async function performCheckIn(locationId: string, selfie?: File) {
+  async function performCheckIn(
+    locationId: string,
+    options?: { selfie?: File; buyHotel?: boolean },
+  ) {
     if (!geo) {
       setMessage("Waiting for GPS before check-in.");
       return;
@@ -123,7 +133,8 @@ export default function TeamAppPage() {
     form.set("locationId", locationId);
     form.set("latitude", String(geo.latitude));
     form.set("longitude", String(geo.longitude));
-    if (selfie) form.set("selfie", selfie);
+    if (options?.selfie) form.set("selfie", options.selfie);
+    if (options?.buyHotel) form.set("buyHotel", "true");
 
     const res = await fetch("/api/team/check-in", { method: "POST", body: form });
     setCheckingIn(null);
@@ -136,9 +147,13 @@ export default function TeamAppPage() {
     if (r.type === "PURCHASE") {
       setMessage(`Purchased ${r.location.name} for £${r.amount}!`);
     } else if (r.type === "RENT") {
-      setMessage(`Paid £${r.amount} rent to ${r.ownerName} at ${r.location.name}.`);
+      setMessage(`Paid £${r.amount} rent at ${r.location.name}.`);
+    } else if (r.type === "HOTEL_PURCHASE") {
+      setMessage(
+        `Hotel built at ${r.location.name} for £${r.amount}. Rent is now £${r.rentNow} when rivals visit.`,
+      );
     } else {
-      setMessage(`Welcome back to your property at ${r.location.name}.`);
+      setMessage(`Visit logged at ${r.location.name}.`);
     }
     loadState();
   }
@@ -154,7 +169,7 @@ export default function TeamAppPage() {
     e.target.value = "";
     pendingLocation.current = null;
     if (file && locId) {
-      performCheckIn(locId, file);
+      performCheckIn(locId, { selfie: file });
     }
   }
 
@@ -174,7 +189,7 @@ export default function TeamAppPage() {
   const { game, team, locations, ownedProperties } = state;
   const nearby = locations.filter((l) => l.inRange);
   const portfolioValue = ownedProperties.reduce((sum, p) => sum + p.price, 0);
-  const rentPerVisit = ownedProperties.reduce((sum, p) => sum + p.rent, 0);
+  const rentPerVisit = ownedProperties.reduce((sum, p) => sum + p.rentDue, 0);
 
   const mapProperties: MapPropertyMarker[] = locations.map((loc) => ({
     id: loc.id,
@@ -182,8 +197,9 @@ export default function TeamAppPage() {
     latitude: loc.latitude,
     longitude: loc.longitude,
     colorGroup: loc.colorGroup,
-    ownerName: loc.owner?.name ?? null,
     price: loc.price,
+    rent: loc.rent,
+    possession: loc.possession,
   }));
 
   const mapTeams: MapTeamMarker[] = geo
@@ -231,10 +247,16 @@ export default function TeamAppPage() {
           <GeoTracker onUpdate={onGeoUpdate} />
         </div>
         {geoError && <p className="mt-2 text-xs text-red-600">{geoError}</p>}
-        {game.status !== "ACTIVE" && (
+        {game.status === "SETUP" && (
           <p className="mt-2 rounded-lg bg-cloudera-blue-soft px-3 py-2 text-xs font-medium text-cloudera-navy">
             The manager has not started the run yet. You can preview locations but cannot buy or pay
             rent until the game is active.
+          </p>
+        )}
+        {game.status === "FINISHED" && (
+          <p className="mt-2 rounded-lg bg-amber-100 px-3 py-2 text-xs font-medium text-amber-950">
+            This run has ended. Unvisited squares were charged at double rent to the bank. Your balance
+            above is final.
           </p>
         )}
       </header>
@@ -282,7 +304,8 @@ export default function TeamAppPage() {
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-cloudera-navy">{prop.name}</p>
                     <p className="text-xs font-medium text-cloudera-gray">
-                      Paid £{prop.price} · Rent £{prop.rent} when rivals visit
+                      Price £{prop.price} · Rent £{prop.rentDue}
+                      {prop.hasHotel ? " (hotel)" : ""} when rivals visit
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
@@ -325,13 +348,9 @@ export default function TeamAppPage() {
                     <div>
                       <p className="font-semibold text-cloudera-navy">{loc.name}</p>
                       <p className="text-xs font-medium text-cloudera-gray">
-                        {loc.distanceM}m away · Buy £{loc.price} · Rent £{loc.rent}
+                        {loc.distanceM}m away · Price £{loc.price} · Rent £{loc.rentDue} ·{" "}
+                        {loc.possession === "owned" ? "Owned" : "Unowned"}
                       </p>
-                      {loc.owner && (
-                        <p className="mt-1 text-xs font-medium text-cloudera-gray">
-                          Owner: {loc.owner.name}
-                        </p>
-                      )}
                     </div>
                     <span
                       className={`rounded-md px-2 py-1 text-[10px] font-medium uppercase ${style?.bg ?? "bg-white/10"}`}
@@ -352,22 +371,36 @@ export default function TeamAppPage() {
                   {loc.action === "rent" && (
                     <button
                       type="button"
-                      disabled={!!checkingIn}
+                      disabled={!!checkingIn || game.status !== "ACTIVE"}
                       onClick={() => performCheckIn(loc.id)}
                       className="btn-danger mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
                     >
-                      {checkingIn === loc.id ? "Processing…" : `Pay rent (£${loc.rent})`}
+                      {checkingIn === loc.id ? "Processing…" : `Pay rent (£${loc.rentDue})`}
                     </button>
                   )}
                   {loc.action === "own" && (
-                    <button
-                      type="button"
-                      disabled={!!checkingIn}
-                      onClick={() => performCheckIn(loc.id)}
-                      className="btn-secondary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
-                    >
-                      {checkingIn === loc.id ? "Logging…" : "Log visit (your property)"}
-                    </button>
+                    <div className="mt-3 space-y-2">
+                      <button
+                        type="button"
+                        disabled={!!checkingIn || game.status !== "ACTIVE"}
+                        onClick={() => performCheckIn(loc.id)}
+                        className="btn-secondary w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
+                      >
+                        {checkingIn === loc.id ? "Logging…" : "Log visit (your property)"}
+                      </button>
+                      {loc.canBuyHotel && (
+                        <button
+                          type="button"
+                          disabled={!!checkingIn || game.status !== "ACTIVE"}
+                          onClick={() => performCheckIn(loc.id, { buyHotel: true })}
+                          className="btn-primary w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
+                        >
+                          {checkingIn === loc.id
+                            ? "Processing…"
+                            : `Build hotel (£${loc.hotelCost}) — rent → £${loc.rent * 2}`}
+                        </button>
+                      )}
+                    </div>
                   )}
                 </li>
               );
@@ -383,8 +416,7 @@ export default function TeamAppPage() {
         <ul className="space-y-2">
           {locations.map((loc) => {
             const style = COLOR_GROUP_STYLES[loc.colorGroup];
-            const owned = !!loc.owner;
-            const isMine = loc.owner?.id === team.id;
+            const isMine = loc.possession === "owned";
             return (
               <li
                 key={loc.id}
@@ -403,13 +435,17 @@ export default function TeamAppPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-cloudera-navy">{loc.name}</p>
                   <p className="text-xs font-medium text-cloudera-gray">
-                    {isMine ? "Your property" : owned ? `Owned · ${loc.owner?.name}` : "Unowned"}
+                    Price £{loc.price} · Rent £{loc.rentDue}
+                    {loc.hasHotel ? " · Hotel" : ""}
+                  </p>
+                  <p className="text-xs font-medium text-cloudera-gray">
+                    {isMine ? "Owned" : "Unowned"}
                     {loc.distanceM != null && ` · ${loc.distanceM}m`}
                   </p>
                 </div>
                 {isMine && (
                   <span className="shrink-0 rounded-full bg-cloudera-blue-soft px-2 py-0.5 text-[10px] font-bold uppercase text-cloudera-navy">
-                    Yours
+                    Owned
                   </span>
                 )}
                 <a

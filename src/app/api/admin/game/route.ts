@@ -5,6 +5,7 @@ import {
   boardSetPrismaOutOfSyncMessage,
   prismaSchemaHelpMessage,
 } from "@/lib/prisma-schema-health";
+import { finishGame } from "@/lib/finish-game";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -154,6 +155,19 @@ export async function PATCH(request: Request) {
   }
 
   try {
+    if (data.status === "FINISHED" && game.status !== "FINISHED") {
+      const finished = await finishGame(game.id);
+      const { status: _s, ...rest } = data;
+      if (Object.keys(rest).length === 0) {
+        return NextResponse.json({ game: finished });
+      }
+      const updated = await prisma.game.update({
+        where: { id: game.id },
+        data: rest,
+      });
+      return NextResponse.json({ game: updated });
+    }
+
     const updated = await prisma.game.update({
       where: { id: game.id },
       data,

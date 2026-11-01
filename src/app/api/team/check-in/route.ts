@@ -14,6 +14,7 @@ export async function POST(request: Request) {
   const latitude = Number(form.get("latitude"));
   const longitude = Number(form.get("longitude"));
   const selfie = form.get("selfie");
+  const buyHotel = String(form.get("buyHotel") ?? "") === "true";
 
   if (!locationId || Number.isNaN(latitude) || Number.isNaN(longitude)) {
     return NextResponse.json({ error: "locationId and GPS coordinates required" }, { status: 400 });
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
       latitude,
       longitude,
       selfiePath,
+      buyHotel,
     });
 
     return NextResponse.json({ result });

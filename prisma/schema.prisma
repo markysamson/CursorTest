@@ -24,6 +24,8 @@ enum VisitType {
   PURCHASE
   RENT
   OWN_VISIT
+  HOTEL_PURCHASE
+  END_PENALTY
 }
 
 model Game {
@@ -86,6 +88,7 @@ model PropertyOwnership {
   purchaseLat  Float
   purchaseLng  Float
   purchasedAt  DateTime @default(now())
+  hasHotel     Boolean  @default(false)
 
   @@unique([gameId, locationId])
 }
