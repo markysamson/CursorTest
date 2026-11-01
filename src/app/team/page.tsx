@@ -174,7 +174,7 @@ export default function TeamAppPage() {
     loadState();
   }
 
-  /** Set before the linked &lt;label&gt; opens the camera (same user gesture — required on iOS). */
+  /** Set before the label opens the camera (same user gesture — required on iOS). */
   function armSelfieForLocation(locationId: string) {
     pendingLocation.current = locationId;
   }
@@ -422,7 +422,7 @@ export default function TeamAppPage() {
                       className={`btn-primary mt-3 flex w-full cursor-pointer justify-center rounded-xl py-2.5 text-sm ${
                         checkingIn ? "pointer-events-none opacity-60" : ""
                       }`}
-                      onClick={() => beginBuyWithSelfie(loc.id)}
+                      onClick={() => armSelfieForLocation(loc.id)}
                     >
                       Buy property
                     </label>
