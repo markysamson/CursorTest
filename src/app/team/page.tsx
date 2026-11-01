@@ -153,10 +153,6 @@ export default function TeamAppPage() {
     setCheckingIn(null);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (data.code === "SELFIE_REQUIRED") {
-        startPurchase(locationId);
-        return;
-      }
       setMessage(data.error ?? "Check-in failed");
       return;
     }
@@ -178,13 +174,9 @@ export default function TeamAppPage() {
     loadState();
   }
 
-  function startPurchase(locationId: string) {
+  /** Set before the linked &lt;label&gt; opens the camera (same user gesture — required on iOS). */
+  function armSelfieForLocation(locationId: string) {
     pendingLocation.current = locationId;
-    fileRef.current?.click();
-  }
-
-  function attemptBuy(locationId: string) {
-    void performCheckIn(locationId);
   }
 
   async function buyHotelRemote(locationId: string) {
@@ -264,11 +256,12 @@ export default function TeamAppPage() {
   return (
     <main className="mx-auto min-h-screen max-w-lg bg-white px-4 pb-24 pt-6">
       <input
+        id="team-selfie-capture"
         ref={fileRef}
         type="file"
         accept="image/*"
         capture="user"
-        className="hidden"
+        className="sr-only"
         onChange={onSelfieSelected}
       />
 
@@ -424,14 +417,15 @@ export default function TeamAppPage() {
                     </span>
                   </div>
                   {showActions && loc.action === "purchase" && (
-                    <button
-                      type="button"
-                      disabled={!!checkingIn}
-                      onClick={() => attemptBuy(loc.id)}
-                      className="btn-primary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
+                    <label
+                      htmlFor="team-selfie-capture"
+                      className={`btn-primary mt-3 flex w-full cursor-pointer justify-center rounded-xl py-2.5 text-sm ${
+                        checkingIn ? "pointer-events-none opacity-60" : ""
+                      }`}
+                      onClick={() => beginBuyWithSelfie(loc.id)}
                     >
-                      {checkingIn === loc.id ? "Checking…" : "Buy property"}
-                    </button>
+                      Buy property
+                    </label>
                   )}
                   {showActions && loc.action === "own" && (
                     <button

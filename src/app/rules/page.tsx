@@ -43,9 +43,9 @@ export default function RulesPage() {
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Each property shows a price and rent on your board list.</li>
             <li>
-              When you arrive, tap <strong>Buy property</strong>. If the square is free, you&apos;ll
-              take a selfie and pay the price. If another team already owns it, you&apos;ll be told
-              only after tapping — then rent is taken automatically.
+              When you arrive, tap <strong>Buy property</strong> and take a team selfie. If the
+              square is free, you pay the price. If another team already owns it, you&apos;ll see
+              that after the photo is sent and rent is taken (no rival names are shown beforehand).
             </li>
             <li>
               You cannot see which rival owns a square. Your view is only <strong>Owned</strong>{" "}
