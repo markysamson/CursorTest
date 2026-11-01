@@ -15,7 +15,7 @@
     "build": "prisma generate && prisma migrate deploy && tsx prisma/seed.ts && next build",
     "build:prod": "bash scripts/build-prod.sh",
     "start": "bash scripts/start-prod.sh",
-    "setup:prod": "tsx scripts/ensure-data-dir.ts && prisma migrate deploy && tsx prisma/seed.ts",
+    "setup:prod": "bash scripts/ensure-data-dir.sh && prisma migrate deploy && tsx prisma/seed.ts",
     "lint": "eslint",
     "postinstall": "prisma generate && bash scripts/rebuild-sqlite.sh",
     "rebuild:sqlite": "bash scripts/rebuild-sqlite.sh",

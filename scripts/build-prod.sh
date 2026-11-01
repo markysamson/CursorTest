@@ -7,7 +7,7 @@ export PATH="$ROOT/node_modules/.bin:$PATH"
 bash scripts/rebuild-sqlite.sh
 
 echo "Running migrations and seed…"
-tsx scripts/ensure-data-dir.ts
+bash scripts/ensure-data-dir.sh
 npm exec prisma migrate deploy
 tsx prisma/seed.ts
 
