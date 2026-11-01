@@ -60,16 +60,16 @@ export const SAFFRON_WALDEN_LOCATIONS = [
   { name: "Common Hill", colorGroup: "yellow", price: 280, rent: 28, latitude: 52.0255, longitude: 0.2468, boardOrder: 14 },
 ] as const;
 
-/** Small Essex village board — ~1 hour on foot from Audley End station. */
+/** Wendens Ambo village — ~1 hour on foot; all stops within the village (≤ ~600 m). */
 export const WENDENS_AMBO_LOCATIONS = [
-  { name: "Audley End Station", colorGroup: "brown", price: 60, rent: 6, latitude: 51.9569, longitude: 0.2176, boardOrder: 1 },
-  { name: "Station Road", colorGroup: "brown", price: 60, rent: 6, latitude: 51.9618, longitude: 0.2112, boardOrder: 2 },
-  { name: "St Mary's Church", colorGroup: "light-blue", price: 80, rent: 8, latitude: 51.9698, longitude: 0.1962, boardOrder: 3 },
-  { name: "The Swords", colorGroup: "light-blue", price: 80, rent: 8, latitude: 51.9692, longitude: 0.1975, boardOrder: 4 },
-  { name: "Broadway", colorGroup: "pink", price: 100, rent: 10, latitude: 51.9685, longitude: 0.1995, boardOrder: 5 },
-  { name: "Village Hall", colorGroup: "pink", price: 100, rent: 10, latitude: 51.9695, longitude: 0.2005, boardOrder: 6 },
-  { name: "Mill Lane", colorGroup: "orange", price: 120, rent: 12, latitude: 51.9678, longitude: 0.2012, boardOrder: 7 },
-  { name: "Church Path", colorGroup: "red", price: 140, rent: 14, latitude: 51.9702, longitude: 0.1958, boardOrder: 8 },
+  { name: "Audley End Railway Station", colorGroup: "brown", price: 60, rent: 6, latitude: 52.00457, longitude: 0.20762, boardOrder: 1 },
+  { name: "Railway Cottages", colorGroup: "brown", price: 60, rent: 6, latitude: 52.00603, longitude: 0.20738, boardOrder: 2 },
+  { name: "Wendens Ambo Village Hall", colorGroup: "light-blue", price: 80, rent: 8, latitude: 52.00607, longitude: 0.20284, boardOrder: 3 },
+  { name: "The Bell", colorGroup: "light-blue", price: 80, rent: 8, latitude: 52.00516, longitude: 0.20027, boardOrder: 4 },
+  { name: "Royston Road", colorGroup: "pink", price: 100, rent: 10, latitude: 52.00498, longitude: 0.20135, boardOrder: 5 },
+  { name: "Duck Street", colorGroup: "pink", price: 100, rent: 10, latitude: 52.00295, longitude: 0.19963, boardOrder: 6 },
+  { name: "St Mary's Church, Wendens Ambo", colorGroup: "orange", price: 120, rent: 12, latitude: 52.00533, longitude: 0.20272, boardOrder: 7 },
+  { name: "Church Path", colorGroup: "red", price: 140, rent: 14, latitude: 52.00537, longitude: 0.20214, boardOrder: 8 },
 ] as const;
 
 export const COLOR_GROUP_STYLES: Record<string, { bg: string; border: string; label: string }> = {

@@ -17,6 +17,10 @@ const SETS = [
 
 async function main() {
   for (const { boardSet, locations } of SETS) {
+    const names = locations.map((loc) => loc.name);
+    await prisma.location.deleteMany({
+      where: { boardSet, name: { notIn: names } },
+    });
     for (const loc of locations) {
       await prisma.location.upsert({
         where: {

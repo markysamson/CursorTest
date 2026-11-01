@@ -44,7 +44,7 @@ export const BOARD_SET_CONFIG: Record<
   },
   WENDENS_AMBO: {
     label: "Wendens Ambo",
-    subtitle: "8-stop village loop from Audley End — about 1 hour on foot",
+    subtitle: "8-stop loop entirely within Wendens Ambo village — about 1 hour on foot",
     startingBalance: 900,
     geofenceRadiusM: 80,
     suggestedDuration: "~1 hour",
