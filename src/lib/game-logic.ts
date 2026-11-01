@@ -59,6 +59,20 @@ export async function processLocationCheckIn(params: {
   if (!team || team.gameId !== gameId) throw new GameActionError("Team not found", 404);
   if (!location) throw new GameActionError("Location not found", 404);
 
+  if (!buyHotel) {
+    const alreadyCheckedIn = await prisma.visit.findFirst({
+      where: {
+        gameId,
+        teamId,
+        locationId,
+        visitType: { in: ["PURCHASE", "RENT"] },
+      },
+    });
+    if (alreadyCheckedIn) {
+      throw new GameActionError("You have already checked in at this property during this run.");
+    }
+  }
+
   if (
     !skipGeofence &&
     !isWithinGeofence(
@@ -185,23 +199,7 @@ export async function processLocationCheckIn(params: {
   }
 
   if (ownership.teamId === teamId) {
-    await prisma.visit.create({
-      data: {
-        gameId,
-        teamId,
-        locationId,
-        visitType: "OWN_VISIT",
-        amount: 0,
-        verifiedLat: latitude,
-        verifiedLng: longitude,
-      },
-    });
-    return {
-      type: "OWN_VISIT" as const,
-      location,
-      team,
-      amount: 0,
-    };
+    throw new GameActionError("You already own this property.");
   }
 
   const rent = effectiveRent(location, ownership);

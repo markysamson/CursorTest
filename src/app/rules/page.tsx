@@ -43,9 +43,13 @@ export default function RulesPage() {
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Each property shows a price and rent on your board list.</li>
             <li>
-              When you arrive, tap <strong>Buy property</strong> and take a team selfie. If the
-              square is free, you pay the price. If another team already owns it, you&apos;ll see
-              that after the photo is sent and rent is taken (no rival names are shown beforehand).
+              When you arrive, tap <strong>Buy property</strong>. If another team already owns it,
+              rent is taken immediately (no selfie). If it is available, you&apos;ll be asked to
+              take a team selfie to complete the purchase.
+            </li>
+            <li>
+              Each team can only check in once per square (buy or pay rent). Completed squares
+              disappear from &quot;You&apos;re here — check in&quot;.
             </li>
             <li>
               You cannot see which rival owns a square. Your view is only <strong>Owned</strong>{" "}

@@ -44,11 +44,11 @@ export const BOARD_SET_CONFIG: Record<
   },
   WENDENS_AMBO: {
     label: "Wendens Ambo",
-    subtitle: "10-stop loop in Wendens Ambo village — about 1 hour on foot",
+    subtitle: "9-stop loop in Wendens Ambo village — about 1 hour on foot",
     startingBalance: 900,
     geofenceRadiusM: 50,
     suggestedDuration: "~1 hour",
-    stopCount: 10,
+    stopCount: 9,
   },
 };
 

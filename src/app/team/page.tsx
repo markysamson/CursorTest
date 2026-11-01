@@ -19,9 +19,10 @@ type LocationState = {
   longitude: number;
   distanceM: number | null;
   inRange: boolean;
-  action: "purchase" | "own" | "none";
+  action: "purchase" | "none";
   possession: "owned" | "unowned";
   ownedByYou: boolean;
+  alreadyCompleted: boolean;
   hasHotel: boolean;
   hotelCost: number;
   canBuyHotel: boolean;
@@ -69,8 +70,7 @@ export default function TeamAppPage() {
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingLocation = useRef<string | null>(null);
-  /** Hide check-in buttons until the team leaves the geofence and returns. */
-  const [handledNearby, setHandledNearby] = useState<Set<string>>(() => new Set());
+  const [selfieStepLocationId, setSelfieStepLocationId] = useState<string | null>(null);
 
   const onGeoUpdate = useCallback((pos: GeoPosition | null, err: string | null) => {
     setGeo(pos);
@@ -98,15 +98,6 @@ export default function TeamAppPage() {
       window.clearInterval(t);
     };
   }, [loadState]);
-
-  useEffect(() => {
-    if (!state) return;
-    const inRangeIds = new Set(state.locations.filter((l) => l.inRange).map((l) => l.id));
-    setHandledNearby((prev) => {
-      const next = new Set([...prev].filter((id) => inRangeIds.has(id)));
-      return next.size === prev.size ? prev : next;
-    });
-  }, [state?.locations]);
 
   useEffect(() => {
     if (geo == null) return;
@@ -153,10 +144,15 @@ export default function TeamAppPage() {
     setCheckingIn(null);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
+      if (data.code === "SELFIE_REQUIRED") {
+        setSelfieStepLocationId(locationId);
+        setMessage("This square is available — take a team selfie to complete your purchase.");
+        return;
+      }
       setMessage(data.error ?? "Check-in failed");
       return;
     }
-    setHandledNearby((prev) => new Set(prev).add(locationId));
+    setSelfieStepLocationId(null);
     const r = data.result;
     if (r.type === "PURCHASE") {
       setMessage(`Purchased ${r.location.name} for £${r.amount}!`);
@@ -174,9 +170,12 @@ export default function TeamAppPage() {
     loadState();
   }
 
-  /** Set before the label opens the camera (same user gesture — required on iOS). */
   function armSelfieForLocation(locationId: string) {
     pendingLocation.current = locationId;
+  }
+
+  function attemptBuy(locationId: string) {
+    void performCheckIn(locationId);
   }
 
   async function buyHotelRemote(locationId: string) {
@@ -225,7 +224,9 @@ export default function TeamAppPage() {
   }
 
   const { game, team, locations, ownedProperties } = state;
-  const nearby = locations.filter((l) => l.inRange);
+  const nearby = locations.filter(
+    (l) => l.inRange && !l.alreadyCompleted && l.action === "purchase",
+  );
   const portfolioValue = ownedProperties.reduce((sum, p) => sum + p.price, 0);
   const rentPerVisit = ownedProperties.reduce((sum, p) => sum + p.rentDue, 0);
 
@@ -398,8 +399,7 @@ export default function TeamAppPage() {
           <ul className="space-y-3">
             {nearby.map((loc) => {
               const style = COLOR_GROUP_STYLES[loc.colorGroup];
-              const showActions =
-                game.status === "ACTIVE" && !handledNearby.has(loc.id);
+              const needsSelfie = selfieStepLocationId === loc.id;
               return (
                 <li key={loc.id} className="board-card rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -416,26 +416,24 @@ export default function TeamAppPage() {
                       {style?.label ?? loc.colorGroup}
                     </span>
                   </div>
-                  {showActions && loc.action === "purchase" && (
-                    <label
-                      htmlFor="team-selfie-capture"
-                      className={`btn-primary mt-3 flex w-full cursor-pointer justify-center rounded-xl py-2.5 text-sm ${
-                        checkingIn ? "pointer-events-none opacity-60" : ""
-                      }`}
-                      onClick={() => armSelfieForLocation(loc.id)}
-                    >
-                      Buy property
-                    </label>
-                  )}
-                  {showActions && loc.action === "own" && (
+                  {game.status === "ACTIVE" && !needsSelfie && (
                     <button
                       type="button"
                       disabled={!!checkingIn}
-                      onClick={() => performCheckIn(loc.id)}
-                      className="btn-secondary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
+                      onClick={() => attemptBuy(loc.id)}
+                      className="btn-primary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
                     >
-                      {checkingIn === loc.id ? "Logging…" : "Log visit (your property)"}
+                      {checkingIn === loc.id ? "Checking…" : "Buy property"}
                     </button>
+                  )}
+                  {game.status === "ACTIVE" && needsSelfie && (
+                    <label
+                      htmlFor="team-selfie-capture"
+                      className="btn-primary mt-3 flex w-full cursor-pointer justify-center rounded-xl py-2.5 text-sm"
+                      onClick={() => armSelfieForLocation(loc.id)}
+                    >
+                      Take selfie to buy
+                    </label>
                   )}
                 </li>
               );
@@ -474,7 +472,11 @@ export default function TeamAppPage() {
                     {loc.hasHotel ? " · Hotel" : ""}
                   </p>
                   <p className="text-xs font-medium text-cloudera-gray">
-                    {isMine ? "Owned" : "Unowned"}
+                    {loc.alreadyCompleted
+                      ? "Checked in"
+                      : isMine
+                        ? "Owned"
+                        : "Unowned"}
                     {loc.distanceM != null && ` · ${loc.distanceM}m`}
                   </p>
                 </div>
