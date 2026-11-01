@@ -60,22 +60,16 @@ export const SAFFRON_WALDEN_LOCATIONS = [
   { name: "Common Hill", colorGroup: "yellow", price: 280, rent: 28, latitude: 52.0255, longitude: 0.2468, boardOrder: 14 },
 ] as const;
 
-/** Compact board around Canary Wharf and West India Quay — ~2–3 hours on foot. */
-export const CANARY_WHARF_LOCATIONS = [
-  { name: "Westferry Circus", colorGroup: "brown", price: 80, rent: 8, latitude: 51.5068, longitude: -0.0282, boardOrder: 1 },
-  { name: "Montgomery Street", colorGroup: "brown", price: 80, rent: 8, latitude: 51.5069, longitude: -0.0186, boardOrder: 2 },
-  { name: "Cabot Square", colorGroup: "light-blue", price: 100, rent: 10, latitude: 51.5051, longitude: -0.0214, boardOrder: 3 },
-  { name: "Canada Square", colorGroup: "light-blue", price: 100, rent: 10, latitude: 51.5033, longitude: -0.0197, boardOrder: 4 },
-  { name: "Churchill Place", colorGroup: "light-blue", price: 120, rent: 12, latitude: 51.5041, longitude: -0.0144, boardOrder: 5 },
-  { name: "West India Quay", colorGroup: "pink", price: 140, rent: 14, latitude: 51.5077, longitude: -0.0223, boardOrder: 6 },
-  { name: "Hertsmere Road", colorGroup: "pink", price: 140, rent: 14, latitude: 51.5082, longitude: -0.0255, boardOrder: 7 },
-  { name: "Bank Street", colorGroup: "pink", price: 160, rent: 16, latitude: 51.5036, longitude: -0.0169, boardOrder: 8 },
-  { name: "Adams Place", colorGroup: "orange", price: 180, rent: 18, latitude: 51.5058, longitude: -0.0162, boardOrder: 9 },
-  { name: "Marsh Wall", colorGroup: "orange", price: 180, rent: 18, latitude: 51.5012, longitude: -0.0178, boardOrder: 10 },
-  { name: "South Colonnade", colorGroup: "orange", price: 200, rent: 20, latitude: 51.5024, longitude: -0.0231, boardOrder: 11 },
-  { name: "Jubilee Place", colorGroup: "red", price: 220, rent: 22, latitude: 51.5038, longitude: -0.0188, boardOrder: 12 },
-  { name: "Crossrail Place", colorGroup: "red", price: 240, rent: 24, latitude: 51.5056, longitude: -0.0158, boardOrder: 13 },
-  { name: "Harbour Exchange", colorGroup: "yellow", price: 280, rent: 28, latitude: 51.4998, longitude: -0.0135, boardOrder: 14 },
+/** Small Essex village board — ~1 hour on foot from Audley End station. */
+export const WENDENS_AMBO_LOCATIONS = [
+  { name: "Audley End Station", colorGroup: "brown", price: 60, rent: 6, latitude: 51.9569, longitude: 0.2176, boardOrder: 1 },
+  { name: "Station Road", colorGroup: "brown", price: 60, rent: 6, latitude: 51.9618, longitude: 0.2112, boardOrder: 2 },
+  { name: "St Mary's Church", colorGroup: "light-blue", price: 80, rent: 8, latitude: 51.9698, longitude: 0.1962, boardOrder: 3 },
+  { name: "The Swords", colorGroup: "light-blue", price: 80, rent: 8, latitude: 51.9692, longitude: 0.1975, boardOrder: 4 },
+  { name: "Broadway", colorGroup: "pink", price: 100, rent: 10, latitude: 51.9685, longitude: 0.1995, boardOrder: 5 },
+  { name: "Village Hall", colorGroup: "pink", price: 100, rent: 10, latitude: 51.9695, longitude: 0.2005, boardOrder: 6 },
+  { name: "Mill Lane", colorGroup: "orange", price: 120, rent: 12, latitude: 51.9678, longitude: 0.2012, boardOrder: 7 },
+  { name: "Church Path", colorGroup: "red", price: 140, rent: 14, latitude: 51.9702, longitude: 0.1958, boardOrder: 8 },
 ] as const;
 
 export const COLOR_GROUP_STYLES: Record<string, { bg: string; border: string; label: string }> = {

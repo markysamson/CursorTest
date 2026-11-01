@@ -17,7 +17,7 @@ enum BoardSet {
   LONDON_FULL
   CITY_OF_LONDON
   SAFFRON_WALDEN
-  CANARY_WHARF
+  WENDENS_AMBO
 }
 
 enum VisitType {

@@ -2,7 +2,7 @@ export const BOARD_SET_IDS = [
   "LONDON_FULL",
   "CITY_OF_LONDON",
   "SAFFRON_WALDEN",
-  "CANARY_WHARF",
+  "WENDENS_AMBO",
 ] as const;
 
 export type BoardSetId = (typeof BOARD_SET_IDS)[number];
@@ -42,13 +42,13 @@ export const BOARD_SET_CONFIG: Record<
     suggestedDuration: "2–3 hours",
     stopCount: 14,
   },
-  CANARY_WHARF: {
-    label: "Canary Wharf",
-    subtitle: "14-stop board around the Isle of Dogs estate",
-    startingBalance: 1200,
-    geofenceRadiusM: 100,
-    suggestedDuration: "2–3 hours",
-    stopCount: 14,
+  WENDENS_AMBO: {
+    label: "Wendens Ambo",
+    subtitle: "8-stop village loop from Audley End — about 1 hour on foot",
+    startingBalance: 900,
+    geofenceRadiusM: 80,
+    suggestedDuration: "~1 hour",
+    stopCount: 8,
   },
 };
 

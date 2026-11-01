@@ -249,39 +249,26 @@ If certificate issuance fails, check: DNS propagated, security group allows **80
 
 ## Updates
 
-**Default branch (`main`)** — routine pull:
-
-```bash
-sudo -u monopoly -H bash -c '
-  cd /opt/monopoly-run/CursorTest
-  git pull origin main
-  npm ci
-  set -a && source /var/lib/monopoly-run/.env && set +a
-  npm run build:prod
-'
-sudo cp /opt/monopoly-run/CursorTest/deploy/aws/monopoly-run.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl restart monopoly-run
-```
-
-**Feature branches (e.g. Canary Wharf board)** — not on `main` until merged. Check out the branch, **seed** new locations, then **rebuild** (the admin UI is baked into `.next`):
+Pull **`main`**, reinstall deps, **seed** (new board locations), and **rebuild** (board picker is compiled into `.next`):
 
 ```bash
 sudo systemctl stop monopoly-run
 sudo -u monopoly -H bash -c '
   cd /opt/monopoly-run/CursorTest
   git fetch origin
-  git checkout cursor/canary-wharf-board-9709
-  git pull origin cursor/canary-wharf-board-9709
+  git checkout main
+  git pull origin main
   npm ci
   set -a && source /var/lib/monopoly-run/.env && set +a
   npm run setup:prod
   npm run build:prod
 '
+sudo cp /opt/monopoly-run/CursorTest/deploy/aws/monopoly-run.service /etc/systemd/system/ 2>/dev/null || true
+sudo systemctl daemon-reload
 sudo systemctl start monopoly-run
 ```
 
-Confirm: `git branch --show-current` should show the feature branch; after deploy, the manager “Create game” screen should list **Canary Wharf**.
+After deploy, hard-refresh the manager page (Ctrl+Shift+R). New boards (e.g. **Wendens Ambo**) appear only after `setup:prod` + `build:prod`.
 
 ## Backups
 
