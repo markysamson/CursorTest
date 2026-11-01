@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ result });
   } catch (e) {
     if (e instanceof GameActionError) {
-      return NextResponse.json({ error: e.message }, { status: e.status });
+      return NextResponse.json({ error: e.message, code: e.code }, { status: e.status });
     }
     if (e instanceof Error) {
       return NextResponse.json({ error: e.message }, { status: 400 });

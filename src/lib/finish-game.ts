@@ -53,17 +53,3 @@ export async function finishGame(gameId: string) {
 
   return prisma.game.findUnique({ where: { id: gameId } });
 }
-
-export async function maybeFinishWhenBoardFull(gameId: string) {
-  const game = await prisma.game.findUnique({ where: { id: gameId } });
-  if (!game || game.status !== "ACTIVE") return;
-
-  const [locationCount, ownershipCount] = await Promise.all([
-    prisma.location.count({ where: { boardSet: game.boardSet } }),
-    prisma.propertyOwnership.count({ where: { gameId } }),
-  ]);
-
-  if (locationCount > 0 && ownershipCount >= locationCount) {
-    await finishGame(gameId);
-  }
-}

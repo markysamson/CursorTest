@@ -82,17 +82,12 @@ export async function GET(request: Request) {
         ownerships,
       });
     const canBuyHotel =
-      game.status === "ACTIVE" &&
-      inRange &&
-      ownedByYou &&
-      fullColorSet &&
-      !own?.hasHotel;
+      game.status === "ACTIVE" && ownedByYou && fullColorSet && !own?.hasHotel;
 
-    let action: "purchase" | "rent" | "own" | "none" = "none";
+    let action: "purchase" | "own" | "none" = "none";
     if (game.status === "ACTIVE" && inRange) {
-      if (!own) action = "purchase";
-      else if (ownedByYou) action = "own";
-      else action = "rent";
+      if (ownedByYou) action = "own";
+      else action = "purchase";
     }
 
     return {
@@ -123,6 +118,12 @@ export async function GET(request: Request) {
     .filter((loc) => loc.ownedByYou)
     .map((loc) => {
       const own = ownershipByLocation.get(loc.id)!;
+      const fullSet = teamOwnsFullColorSet({
+        teamId: team.id,
+        colorGroup: loc.colorGroup,
+        locations,
+        ownerships,
+      });
       return {
         id: loc.id,
         name: loc.name,
@@ -131,6 +132,9 @@ export async function GET(request: Request) {
         rent: loc.rent,
         rentDue: effectiveRent(loc, own),
         hasHotel: own.hasHotel,
+        canBuyHotel:
+          game.status === "ACTIVE" && fullSet && !own.hasHotel,
+        hotelCost: hotelCost(loc),
         selfiePath: own.selfiePath,
         latitude: loc.latitude,
         longitude: loc.longitude,

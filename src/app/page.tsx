@@ -37,6 +37,15 @@ export default function HomePage() {
             Create teams &amp; track scores
           </span>
         </Link>
+        <Link
+          href="/rules"
+          className="board-card rounded-2xl px-6 py-5 text-center transition hover:border-cloudera-blue hover:shadow-md"
+        >
+          <span className="text-lg font-semibold text-cloudera-navy">Rules</span>
+          <span className="mt-1 block text-sm font-medium text-cloudera-gray">
+            How buying, rent, hotels &amp; scoring work
+          </span>
+        </Link>
       </div>
     </main>
   );

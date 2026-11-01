@@ -19,7 +19,7 @@ type LocationState = {
   longitude: number;
   distanceM: number | null;
   inRange: boolean;
-  action: "purchase" | "rent" | "own" | "none";
+  action: "purchase" | "own" | "none";
   possession: "owned" | "unowned";
   ownedByYou: boolean;
   hasHotel: boolean;
@@ -35,6 +35,8 @@ type OwnedProperty = {
   rent: number;
   rentDue: number;
   hasHotel: boolean;
+  canBuyHotel: boolean;
+  hotelCost: number;
   selfiePath: string;
   latitude: number;
   longitude: number;
@@ -67,6 +69,8 @@ export default function TeamAppPage() {
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingLocation = useRef<string | null>(null);
+  /** Hide check-in buttons until the team leaves the geofence and returns. */
+  const [handledNearby, setHandledNearby] = useState<Set<string>>(() => new Set());
 
   const onGeoUpdate = useCallback((pos: GeoPosition | null, err: string | null) => {
     setGeo(pos);
@@ -94,6 +98,15 @@ export default function TeamAppPage() {
       window.clearInterval(t);
     };
   }, [loadState]);
+
+  useEffect(() => {
+    if (!state) return;
+    const inRangeIds = new Set(state.locations.filter((l) => l.inRange).map((l) => l.id));
+    setHandledNearby((prev) => {
+      const next = new Set([...prev].filter((id) => inRangeIds.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [state?.locations]);
 
   useEffect(() => {
     if (geo == null) return;
@@ -140,14 +153,21 @@ export default function TeamAppPage() {
     setCheckingIn(null);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
+      if (data.code === "SELFIE_REQUIRED") {
+        startPurchase(locationId);
+        return;
+      }
       setMessage(data.error ?? "Check-in failed");
       return;
     }
+    setHandledNearby((prev) => new Set(prev).add(locationId));
     const r = data.result;
     if (r.type === "PURCHASE") {
       setMessage(`Purchased ${r.location.name} for £${r.amount}!`);
     } else if (r.type === "RENT") {
-      setMessage(`Paid £${r.amount} rent at ${r.location.name}.`);
+      setMessage(
+        `This property is already owned by another team. Rent paid: £${r.amount} at ${r.location.name}.`,
+      );
     } else if (r.type === "HOTEL_PURCHASE") {
       setMessage(
         `Hotel built at ${r.location.name} for £${r.amount}. Rent is now £${r.rentNow} when rivals visit.`,
@@ -161,6 +181,32 @@ export default function TeamAppPage() {
   function startPurchase(locationId: string) {
     pendingLocation.current = locationId;
     fileRef.current?.click();
+  }
+
+  function attemptBuy(locationId: string) {
+    void performCheckIn(locationId);
+  }
+
+  async function buyHotelRemote(locationId: string) {
+    setCheckingIn(locationId);
+    setMessage(null);
+    const res = await fetch("/api/team/hotel", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locationId }),
+    });
+    setCheckingIn(null);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setMessage(data.error ?? "Could not build hotel");
+      return;
+    }
+    const r = data.result;
+    setMessage(
+      `Hotel built at ${r.location.name} for £${r.amount}. Rent is now £${r.rentNow} when rivals visit.`,
+    );
+    loadState();
   }
 
   function onSelfieSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -243,8 +289,11 @@ export default function TeamAppPage() {
             </p>
           </div>
         </div>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <GeoTracker onUpdate={onGeoUpdate} />
+          <a href="/rules" className="text-xs font-semibold text-cloudera-orange-dark underline">
+            Rules
+          </a>
         </div>
         {geoError && <p className="mt-2 text-xs text-red-600">{geoError}</p>}
         {game.status === "SETUP" && (
@@ -293,36 +342,50 @@ export default function TeamAppPage() {
               return (
                 <li
                   key={prop.id}
-                  className="flex items-center gap-3 rounded-xl border border-cloudera-blue/30 bg-cloudera-blue-soft p-2"
+                  className="rounded-xl border border-cloudera-blue/30 bg-cloudera-blue-soft p-2"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={prop.selfiePath}
-                    alt=""
-                    className="h-14 w-14 shrink-0 rounded-lg object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-cloudera-navy">{prop.name}</p>
-                    <p className="text-xs font-medium text-cloudera-gray">
-                      Price £{prop.price} · Rent £{prop.rentDue}
-                      {prop.hasHotel ? " (hotel)" : ""} when rivals visit
-                    </p>
+                  <div className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={prop.selfiePath}
+                      alt=""
+                      className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-cloudera-navy">{prop.name}</p>
+                      <p className="text-xs font-medium text-cloudera-gray">
+                        Price £{prop.price} · Rent £{prop.rentDue}
+                        {prop.hasHotel ? " (hotel)" : ""} when rivals visit
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <span
+                        className={`rounded px-2 py-0.5 text-[10px] font-medium uppercase text-white ${style?.bg ?? "bg-zinc-500"}`}
+                      >
+                        {style?.label ?? prop.colorGroup}
+                      </span>
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${prop.latitude},${prop.longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[10px] font-semibold text-cloudera-orange-dark underline"
+                      >
+                        Directions
+                      </a>
+                    </div>
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    <span
-                      className={`rounded px-2 py-0.5 text-[10px] font-medium uppercase text-white ${style?.bg ?? "bg-zinc-500"}`}
+                  {prop.canBuyHotel && game.status === "ACTIVE" && (
+                    <button
+                      type="button"
+                      disabled={!!checkingIn}
+                      onClick={() => buyHotelRemote(prop.id)}
+                      className="btn-primary mt-2 w-full rounded-lg py-2 text-xs disabled:opacity-60"
                     >
-                      {style?.label ?? prop.colorGroup}
-                    </span>
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${prop.latitude},${prop.longitude}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[10px] font-semibold text-cloudera-orange-dark underline"
-                    >
-                      Directions
-                    </a>
-                  </div>
+                      {checkingIn === prop.id
+                        ? "Processing…"
+                        : `Build hotel (£${prop.hotelCost}) — rent → £${prop.rent * 2}`}
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -342,6 +405,8 @@ export default function TeamAppPage() {
           <ul className="space-y-3">
             {nearby.map((loc) => {
               const style = COLOR_GROUP_STYLES[loc.colorGroup];
+              const showActions =
+                game.status === "ACTIVE" && !handledNearby.has(loc.id);
               return (
                 <li key={loc.id} className="board-card rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -358,49 +423,25 @@ export default function TeamAppPage() {
                       {style?.label ?? loc.colorGroup}
                     </span>
                   </div>
-                  {loc.action === "purchase" && (
+                  {showActions && loc.action === "purchase" && (
                     <button
                       type="button"
                       disabled={!!checkingIn}
-                      onClick={() => startPurchase(loc.id)}
+                      onClick={() => attemptBuy(loc.id)}
                       className="btn-primary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
                     >
-                      {checkingIn === loc.id ? "Uploading…" : "Take selfie & buy property"}
+                      {checkingIn === loc.id ? "Checking…" : "Buy property"}
                     </button>
                   )}
-                  {loc.action === "rent" && (
+                  {showActions && loc.action === "own" && (
                     <button
                       type="button"
-                      disabled={!!checkingIn || game.status !== "ACTIVE"}
+                      disabled={!!checkingIn}
                       onClick={() => performCheckIn(loc.id)}
-                      className="btn-danger mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
+                      className="btn-secondary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
                     >
-                      {checkingIn === loc.id ? "Processing…" : `Pay rent (£${loc.rentDue})`}
+                      {checkingIn === loc.id ? "Logging…" : "Log visit (your property)"}
                     </button>
-                  )}
-                  {loc.action === "own" && (
-                    <div className="mt-3 space-y-2">
-                      <button
-                        type="button"
-                        disabled={!!checkingIn || game.status !== "ACTIVE"}
-                        onClick={() => performCheckIn(loc.id)}
-                        className="btn-secondary w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
-                      >
-                        {checkingIn === loc.id ? "Logging…" : "Log visit (your property)"}
-                      </button>
-                      {loc.canBuyHotel && (
-                        <button
-                          type="button"
-                          disabled={!!checkingIn || game.status !== "ACTIVE"}
-                          onClick={() => performCheckIn(loc.id, { buyHotel: true })}
-                          className="btn-primary w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
-                        >
-                          {checkingIn === loc.id
-                            ? "Processing…"
-                            : `Build hotel (£${loc.hotelCost}) — rent → £${loc.rent * 2}`}
-                        </button>
-                      )}
-                    </div>
                   )}
                 </li>
               );

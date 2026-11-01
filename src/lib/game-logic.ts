@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { maybeFinishWhenBoardFull } from "@/lib/finish-game";
 import {
   effectiveRent,
   hotelCost,
@@ -11,6 +10,7 @@ export class GameActionError extends Error {
   constructor(
     message: string,
     public status = 400,
+    public code?: string,
   ) {
     super(message);
   }
@@ -37,8 +37,11 @@ export async function processLocationCheckIn(params: {
   longitude: number;
   selfiePath?: string;
   buyHotel?: boolean;
+  /** Hotels can be bought remotely; location check-ins still require geofence. */
+  skipGeofence?: boolean;
 }) {
-  const { teamId, gameId, locationId, latitude, longitude, selfiePath, buyHotel } = params;
+  const { teamId, gameId, locationId, latitude, longitude, selfiePath, buyHotel, skipGeofence } =
+    params;
 
   const game = await assertActiveGame(gameId);
 
@@ -57,6 +60,7 @@ export async function processLocationCheckIn(params: {
   if (!location) throw new GameActionError("Location not found", 404);
 
   if (
+    !skipGeofence &&
     !isWithinGeofence(
       latitude,
       longitude,
@@ -70,7 +74,10 @@ export async function processLocationCheckIn(params: {
     );
   }
 
-  if (ownership?.teamId === teamId && buyHotel) {
+  if (buyHotel) {
+    if (!ownership || ownership.teamId !== teamId) {
+      throw new GameActionError("You can only build a hotel on a property your team owns.");
+    }
     if (ownership.hasHotel) {
       throw new GameActionError("This property already has a hotel.");
     }
@@ -126,7 +133,11 @@ export async function processLocationCheckIn(params: {
 
   if (!ownership) {
     if (!selfiePath) {
-      throw new GameActionError("Upload a team selfie to purchase this property.");
+      throw new GameActionError(
+        "Upload a team selfie to purchase this property.",
+        422,
+        "SELFIE_REQUIRED",
+      );
     }
     if (team.balance < location.price) {
       throw new GameActionError(
@@ -163,8 +174,6 @@ export async function processLocationCheckIn(params: {
       });
       return { updatedTeam, own };
     });
-
-    await maybeFinishWhenBoardFull(gameId);
 
     return {
       type: "PURCHASE" as const,
@@ -228,6 +237,27 @@ export async function processLocationCheckIn(params: {
       team: payer,
       amount: rent,
       ownerBalance: owner.balance,
+      alreadyOwned: true as const,
     };
+  });
+}
+
+/** Build a hotel without being at the property (uses the square’s coordinates for the visit log). */
+export async function processRemoteHotelPurchase(params: {
+  teamId: string;
+  gameId: string;
+  locationId: string;
+}) {
+  const location = await prisma.location.findUnique({ where: { id: params.locationId } });
+  if (!location) throw new GameActionError("Location not found", 404);
+
+  return processLocationCheckIn({
+    teamId: params.teamId,
+    gameId: params.gameId,
+    locationId: params.locationId,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    buyHotel: true,
+    skipGeofence: true,
   });
 }

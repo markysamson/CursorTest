@@ -70,6 +70,8 @@ export const WENDENS_AMBO_LOCATIONS = [
   { name: "Duck Street", colorGroup: "pink", price: 100, rent: 10, latitude: 52.00295, longitude: 0.19963, boardOrder: 6 },
   { name: "St Mary's Church, Wendens Ambo", colorGroup: "orange", price: 120, rent: 12, latitude: 52.00533, longitude: 0.20272, boardOrder: 7 },
   { name: "Church Path", colorGroup: "red", price: 140, rent: 14, latitude: 52.00537, longitude: 0.20214, boardOrder: 8 },
+  { name: "Rookery Cottage", colorGroup: "green", price: 100, rent: 10, latitude: 52.00068, longitude: 0.20274, boardOrder: 9 },
+  { name: "Rookery Lane", colorGroup: "green", price: 120, rent: 12, latitude: 52.00115, longitude: 0.20335, boardOrder: 10 },
 ] as const;
 
 export const COLOR_GROUP_STYLES: Record<string, { bg: string; border: string; label: string }> = {
