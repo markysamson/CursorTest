@@ -249,10 +249,12 @@ If certificate issuance fails, check: DNS propagated, security group allows **80
 
 ## Updates
 
+**Default branch (`main`)** — routine pull:
+
 ```bash
 sudo -u monopoly -H bash -c '
   cd /opt/monopoly-run/CursorTest
-  git pull
+  git pull origin main
   npm ci
   set -a && source /var/lib/monopoly-run/.env && set +a
   npm run build:prod
@@ -261,6 +263,25 @@ sudo cp /opt/monopoly-run/CursorTest/deploy/aws/monopoly-run.service /etc/system
 sudo systemctl daemon-reload
 sudo systemctl restart monopoly-run
 ```
+
+**Feature branches (e.g. Canary Wharf board)** — not on `main` until merged. Check out the branch, **seed** new locations, then **rebuild** (the admin UI is baked into `.next`):
+
+```bash
+sudo systemctl stop monopoly-run
+sudo -u monopoly -H bash -c '
+  cd /opt/monopoly-run/CursorTest
+  git fetch origin
+  git checkout cursor/canary-wharf-board-9709
+  git pull origin cursor/canary-wharf-board-9709
+  npm ci
+  set -a && source /var/lib/monopoly-run/.env && set +a
+  npm run setup:prod
+  npm run build:prod
+'
+sudo systemctl start monopoly-run
+```
+
+Confirm: `git branch --show-current` should show the feature branch; after deploy, the manager “Create game” screen should list **Canary Wharf**.
 
 ## Backups
 
