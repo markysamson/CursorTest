@@ -6,6 +6,7 @@ import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
 import { GeoTracker, type GeoPosition } from "@/components/GeoTracker";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
 import { LandmarkPhoto } from "@/components/LandmarkPhoto";
+import { landmarkImageProxyUrl } from "@/lib/landmark-image-url";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
 import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 
@@ -328,7 +329,7 @@ export default function TeamAppPage() {
                 <li key={loc.id} className="board-card rounded-2xl p-4">
                   <LandmarkPhoto
                     name={loc.name}
-                    imageUrl={loc.landmarkImageUrl}
+                    imageUrl={landmarkImageProxyUrl(loc.id)}
                     className="mb-3 h-36 w-full rounded-xl object-cover"
                   />
                   <div className="flex items-start justify-between gap-2">
@@ -410,7 +411,7 @@ export default function TeamAppPage() {
               >
                 <LandmarkPhoto
                   name={loc.name}
-                  imageUrl={loc.landmarkImageUrl}
+                  imageUrl={landmarkImageProxyUrl(loc.id)}
                   className="h-14 w-14 shrink-0 rounded-lg object-cover"
                 />
                 <div className="min-w-0 flex-1">

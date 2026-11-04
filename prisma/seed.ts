@@ -4,6 +4,7 @@ import {
   LONDON_LOCATIONS,
   SAFFRON_WALDEN_LOCATIONS,
 } from "../src/lib/locations-data";
+import { commonsLandmarkImageUrl } from "../src/lib/landmark-image-url";
 import { rentFromPrice } from "../src/lib/property-economics";
 
 const prisma = createPrismaClient();
@@ -36,7 +37,7 @@ async function main() {
           latitude: loc.latitude,
           longitude: loc.longitude,
           boardOrder: loc.boardOrder,
-          landmarkImageUrl: loc.landmarkImageUrl,
+          landmarkImageUrl: commonsLandmarkImageUrl(loc.commonsFile),
         },
         update: {
           colorGroup: loc.colorGroup,
@@ -45,7 +46,7 @@ async function main() {
           latitude: loc.latitude,
           longitude: loc.longitude,
           boardOrder: loc.boardOrder,
-          landmarkImageUrl: loc.landmarkImageUrl,
+          landmarkImageUrl: commonsLandmarkImageUrl(loc.commonsFile),
         },
       });
     }
