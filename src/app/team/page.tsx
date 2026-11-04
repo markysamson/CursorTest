@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
 import { GeoTracker, type GeoPosition } from "@/components/GeoTracker";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
+import { LandmarkPhoto } from "@/components/LandmarkPhoto";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
 import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 
@@ -14,6 +15,7 @@ type LocationState = {
   colorGroup: string;
   price: number;
   rent: number;
+  landmarkImageUrl: string | null;
   latitude: number;
   longitude: number;
   distanceM: number | null;
@@ -38,6 +40,7 @@ type TeamState = {
     name: string;
     status: string;
     geofenceRadiusM: number;
+    showTeamMap: boolean;
     boardSetLabel: string;
   };
   team: { id: string; name: string; leaderName: string; balance: number };
@@ -239,15 +242,17 @@ export default function TeamAppPage() {
         )}
       </header>
 
-      <section className="board-card mb-4 rounded-2xl p-3">
-        <h2 className="section-heading mb-2 px-1">Map</h2>
-        <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-64" />
-        {!geo && (
-          <p className="mt-2 px-1 text-xs font-medium text-cloudera-gray">
-            Enable location to see your team on the map.
-          </p>
-        )}
-      </section>
+      {game.showTeamMap && (
+        <section className="board-card mb-4 rounded-2xl p-3">
+          <h2 className="section-heading mb-2 px-1">Map</h2>
+          <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-64" />
+          {!geo && (
+            <p className="mt-2 px-1 text-xs font-medium text-cloudera-gray">
+              Enable location to see your team on the map.
+            </p>
+          )}
+        </section>
+      )}
 
       <section className="board-card mb-4 rounded-2xl p-4">
         <div className="mb-3 flex items-baseline justify-between gap-2">
@@ -321,6 +326,11 @@ export default function TeamAppPage() {
               const style = COLOR_GROUP_STYLES[loc.colorGroup];
               return (
                 <li key={loc.id} className="board-card rounded-2xl p-4">
+                  <LandmarkPhoto
+                    name={loc.name}
+                    imageUrl={loc.landmarkImageUrl}
+                    className="mb-3 h-36 w-full rounded-xl object-cover"
+                  />
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="font-semibold text-cloudera-navy">{loc.name}</p>
@@ -346,7 +356,9 @@ export default function TeamAppPage() {
                       onClick={() => startPurchase(loc.id)}
                       className="btn-primary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
                     >
-                      {checkingIn === loc.id ? "Uploading…" : "Take selfie & buy property"}
+                      {checkingIn === loc.id
+                        ? "Uploading…"
+                        : `Selfie with ${loc.name} & buy`}
                     </button>
                   )}
                   {loc.action === "rent" && (
@@ -396,15 +408,19 @@ export default function TeamAppPage() {
                       : "border-cloudera-border bg-cloudera-muted/50"
                 }`}
               >
-                <div
-                  className={`h-10 w-2 shrink-0 rounded-full ${style?.bg ?? "bg-white/20"}`}
-                  aria-hidden
+                <LandmarkPhoto
+                  name={loc.name}
+                  imageUrl={loc.landmarkImageUrl}
+                  className="h-14 w-14 shrink-0 rounded-lg object-cover"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-cloudera-navy">{loc.name}</p>
                   <p className="text-xs font-medium text-cloudera-gray">
-                    {isMine ? "Your property" : owned ? `Owned · ${loc.owner?.name}` : "Unowned"}
+                    Buy £{loc.price} · Rent £{loc.rent}
                     {loc.distanceM != null && ` · ${loc.distanceM}m`}
+                  </p>
+                  <p className="text-xs font-medium text-cloudera-gray">
+                    {isMine ? "Your property" : owned ? `Owned · ${loc.owner?.name}` : "Unowned"}
                   </p>
                 </div>
                 {isMine && (

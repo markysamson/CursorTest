@@ -53,7 +53,9 @@ export async function processLocationCheckIn(params: {
 
   if (!ownership) {
     if (!selfiePath) {
-      throw new GameActionError("Upload a team selfie to purchase this property.");
+      throw new GameActionError(
+        `Take a team selfie with ${location.name} visible behind you to purchase this property.`,
+      );
     }
     if (team.balance < location.price) {
       throw new GameActionError(

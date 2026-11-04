@@ -96,6 +96,7 @@ export async function GET(request: Request) {
       name: game.name,
       status: game.status,
       geofenceRadiusM: game.geofenceRadiusM,
+      showTeamMap: game.showTeamMap,
       boardSet: game.boardSet,
       boardSetLabel: boardSetLabel(game.boardSet),
     },

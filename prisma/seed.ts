@@ -4,6 +4,7 @@ import {
   LONDON_LOCATIONS,
   SAFFRON_WALDEN_LOCATIONS,
 } from "../src/lib/locations-data";
+import { rentFromPrice } from "../src/lib/property-economics";
 
 const prisma = createPrismaClient();
 
@@ -15,7 +16,13 @@ const SETS = [
 
 async function main() {
   for (const { boardSet, locations } of SETS) {
+    const names = locations.map((loc) => loc.name);
+    await prisma.location.deleteMany({
+      where: { boardSet, name: { notIn: names } },
+    });
+
     for (const loc of locations) {
+      const rent = rentFromPrice(loc.price);
       await prisma.location.upsert({
         where: {
           boardSet_name: { boardSet, name: loc.name },
@@ -25,18 +32,20 @@ async function main() {
           name: loc.name,
           colorGroup: loc.colorGroup,
           price: loc.price,
-          rent: loc.rent,
+          rent,
           latitude: loc.latitude,
           longitude: loc.longitude,
           boardOrder: loc.boardOrder,
+          landmarkImageUrl: loc.landmarkImageUrl,
         },
         update: {
           colorGroup: loc.colorGroup,
           price: loc.price,
-          rent: loc.rent,
+          rent,
           latitude: loc.latitude,
           longitude: loc.longitude,
           boardOrder: loc.boardOrder,
+          landmarkImageUrl: loc.landmarkImageUrl,
         },
       });
     }
@@ -51,6 +60,7 @@ async function main() {
         status: "SETUP",
         startingBalance: 1500,
         geofenceRadiusM: 120,
+        showTeamMap: true,
       },
     });
   }

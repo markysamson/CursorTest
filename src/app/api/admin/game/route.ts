@@ -5,6 +5,7 @@ import {
   boardSetPrismaOutOfSyncMessage,
   prismaSchemaHelpMessage,
 } from "@/lib/prisma-schema-health";
+import { finishGame } from "@/lib/finish-game";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -21,6 +22,7 @@ const patchSchema = z.object({
   name: z.string().min(2).max(80).optional(),
   startingBalance: z.number().int().min(100).max(100000).optional(),
   geofenceRadiusM: z.number().int().min(30).max(500).optional(),
+  showTeamMap: z.boolean().optional(),
   boardSet: z.enum(BOARD_SET_IDS).optional(),
 });
 
@@ -31,6 +33,15 @@ const createSchema = z.object({
 
 async function getLatestGame() {
   return prisma.game.findFirst({ orderBy: { createdAt: "desc" } });
+}
+
+export async function GET() {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const game = await getLatestGame();
+  return NextResponse.json({ game });
 }
 
 export async function POST(request: Request) {
@@ -69,6 +80,7 @@ export async function POST(request: Request) {
         status: "SETUP",
         startingBalance: cfg.startingBalance,
         geofenceRadiusM: cfg.geofenceRadiusM,
+        showTeamMap: true,
       },
     });
 
@@ -154,6 +166,20 @@ export async function PATCH(request: Request) {
   }
 
   try {
+    if (data.status === "FINISHED" && game.status !== "FINISHED") {
+      await finishGame(game.id);
+      const { status: _s, ...rest } = data;
+      if (Object.keys(rest).length === 0) {
+        const finished = await prisma.game.findUnique({ where: { id: game.id } });
+        return NextResponse.json({ game: finished });
+      }
+      const updated = await prisma.game.update({
+        where: { id: game.id },
+        data: rest,
+      });
+      return NextResponse.json({ game: updated });
+    }
+
     const updated = await prisma.game.update({
       where: { id: game.id },
       data,
