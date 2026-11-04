@@ -117,7 +117,10 @@ export default function AdminConfigPage() {
         {message && <p className="text-sm font-medium text-cloudera-navy">{message}</p>}
       </form>
 
-      <p className="mt-6 text-center text-sm">
+      <p className="mt-6 flex flex-col items-center gap-2 text-center text-sm">
+        <Link href="/rules" className="font-semibold text-cloudera-orange-dark underline">
+          Game rules
+        </Link>
         <Link href="/admin" className="font-semibold text-cloudera-orange-dark underline">
           Back to manager console
         </Link>

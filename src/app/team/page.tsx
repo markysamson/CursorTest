@@ -6,6 +6,7 @@ import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
 import { GeoTracker, type GeoPosition } from "@/components/GeoTracker";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
 import { LandmarkPhoto } from "@/components/LandmarkPhoto";
+import { LandmarkPhotoPreviewModal } from "@/components/LandmarkPhotoPreviewModal";
 import { landmarkImageProxyUrl } from "@/lib/landmark-image-url";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
 import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
@@ -62,8 +63,13 @@ export default function TeamAppPage() {
   const [state, setState] = useState<TeamState | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<{ name: string; url: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingLocation = useRef<string | null>(null);
+
+  const openLandmarkPreview = useCallback((loc: { id: string; name: string }) => {
+    setPhotoPreview({ name: loc.name, url: landmarkImageProxyUrl(loc.id) });
+  }, []);
 
   const onGeoUpdate = useCallback((pos: GeoPosition | null, err: string | null) => {
     setGeo(pos);
@@ -231,14 +237,23 @@ export default function TeamAppPage() {
             </p>
           </div>
         </div>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <GeoTracker onUpdate={onGeoUpdate} />
+          <a href="/rules" className="text-xs font-semibold text-cloudera-orange-dark underline">
+            Rules
+          </a>
         </div>
         {geoError && <p className="mt-2 text-xs text-red-600">{geoError}</p>}
-        {game.status !== "ACTIVE" && (
+        {game.status === "SETUP" && (
           <p className="mt-2 rounded-lg bg-cloudera-blue-soft px-3 py-2 text-xs font-medium text-cloudera-navy">
             The manager has not started the run yet. You can preview locations but cannot buy or pay
             rent until the game is active.
+          </p>
+        )}
+        {game.status === "FINISHED" && (
+          <p className="mt-2 rounded-lg bg-amber-100 px-3 py-2 text-xs font-medium text-amber-950">
+            This run has ended. Unvisited stops were charged at 1.5× rent to the bank. Your balance
+            above is final.
           </p>
         )}
       </header>
@@ -327,11 +342,17 @@ export default function TeamAppPage() {
               const style = COLOR_GROUP_STYLES[loc.colorGroup];
               return (
                 <li key={loc.id} className="board-card rounded-2xl p-4">
-                  <LandmarkPhoto
-                    name={loc.name}
-                    imageUrl={landmarkImageProxyUrl(loc.id)}
-                    className="mb-3 h-36 w-full rounded-xl object-cover"
-                  />
+                  <button
+                    type="button"
+                    className="mb-3 w-full text-left"
+                    onClick={() => openLandmarkPreview(loc)}
+                  >
+                    <LandmarkPhoto
+                      name={loc.name}
+                      imageUrl={landmarkImageProxyUrl(loc.id)}
+                      className="h-36 w-full rounded-xl object-cover"
+                    />
+                  </button>
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="font-semibold text-cloudera-navy">{loc.name}</p>
@@ -409,31 +430,38 @@ export default function TeamAppPage() {
                       : "border-cloudera-border bg-cloudera-muted/50"
                 }`}
               >
-                <LandmarkPhoto
-                  name={loc.name}
-                  imageUrl={landmarkImageProxyUrl(loc.id)}
-                  className="h-14 w-14 shrink-0 rounded-lg object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-cloudera-navy">{loc.name}</p>
-                  <p className="text-xs font-medium text-cloudera-gray">
-                    Buy £{loc.price} · Rent £{loc.rent}
-                    {loc.distanceM != null && ` · ${loc.distanceM}m`}
-                  </p>
-                  <p className="text-xs font-medium text-cloudera-gray">
-                    {isMine ? "Your property" : owned ? `Owned · ${loc.owner?.name}` : "Unowned"}
-                  </p>
-                </div>
-                {isMine && (
-                  <span className="shrink-0 rounded-full bg-cloudera-blue-soft px-2 py-0.5 text-[10px] font-bold uppercase text-cloudera-navy">
-                    Yours
-                  </span>
-                )}
+                <button
+                  type="button"
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  onClick={() => openLandmarkPreview(loc)}
+                >
+                  <LandmarkPhoto
+                    name={loc.name}
+                    imageUrl={landmarkImageProxyUrl(loc.id)}
+                    className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-cloudera-navy">{loc.name}</p>
+                    <p className="text-xs font-medium text-cloudera-gray">
+                      Buy £{loc.price} · Rent £{loc.rent}
+                      {loc.distanceM != null && ` · ${loc.distanceM}m`}
+                    </p>
+                    <p className="text-xs font-medium text-cloudera-gray">
+                      {isMine ? "Your property" : owned ? `Owned · ${loc.owner?.name}` : "Unowned"}
+                    </p>
+                  </div>
+                  {isMine && (
+                    <span className="shrink-0 rounded-full bg-cloudera-blue-soft px-2 py-0.5 text-[10px] font-bold uppercase text-cloudera-navy">
+                      Yours
+                    </span>
+                  )}
+                </button>
                 <a
                   href={`https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`}
                   target="_blank"
                   rel="noreferrer"
                   className="shrink-0 text-xs font-semibold text-cloudera-orange-dark underline"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   Map
                 </a>
@@ -442,6 +470,14 @@ export default function TeamAppPage() {
           })}
         </ul>
       </section>
+
+      {photoPreview && (
+        <LandmarkPhotoPreviewModal
+          name={photoPreview.name}
+          imageUrl={photoPreview.url}
+          onClose={() => setPhotoPreview(null)}
+        />
+      )}
 
       <footer className="app-footer-bar fixed bottom-0 left-0 right-0 p-4">
         <button

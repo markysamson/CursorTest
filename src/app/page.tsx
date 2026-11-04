@@ -37,6 +37,12 @@ export default function HomePage() {
             Create teams &amp; track scores
           </span>
         </Link>
+        <Link
+          href="/rules"
+          className="rounded-2xl border border-cloudera-border px-6 py-4 text-center text-sm font-semibold text-cloudera-navy underline decoration-cloudera-orange-dark underline-offset-2 transition hover:border-cloudera-blue"
+        >
+          Read the rules
+        </Link>
       </div>
     </main>
   );

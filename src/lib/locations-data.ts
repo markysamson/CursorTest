@@ -49,7 +49,7 @@ export const CITY_OF_LONDON_LOCATIONS: LocationDefinition[] = [
   { name: "Mansion House", colorGroup: "orange", price: 200, latitude: 51.511, longitude: -0.0865, boardOrder: 11, commonsFile: "Mansion_House,_London.jpg" },
   { name: "Guildhall", colorGroup: "red", price: 220, latitude: 51.5133, longitude: -0.0907, boardOrder: 12, commonsFile: "Guildhall,_London.jpg" },
   { name: "Wren's St Stephen Walbrook", colorGroup: "red", price: 240, latitude: 51.5113, longitude: -0.09, boardOrder: 13, commonsFile: "St_Stephen_Walbrook_20130324_033.jpg" },
-  { name: "Millennium Bridge", colorGroup: "yellow", price: 280, latitude: 51.5128, longitude: -0.0935, boardOrder: 14, commonsFile: "Millenium_bridge_2015.jpg" },
+  { name: "Millennium Bridge", colorGroup: "yellow", price: 280, latitude: 51.5102, longitude: -0.0984, boardOrder: 14, commonsFile: "Millenium_bridge_2015.jpg" },
 ];
 
 export const SAFFRON_WALDEN_LOCATIONS: LocationDefinition[] = [
