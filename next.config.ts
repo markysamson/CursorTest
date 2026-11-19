@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   /* Native SQLite — must not be bundled or bindings break in production */
   serverExternalPackages: [
     "better-sqlite3",
