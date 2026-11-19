@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { commonsLandmarkImageUrl } from "@/lib/landmark-image-url";
 import { NextResponse } from "next/server";
 
 const PLACEHOLDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
@@ -54,6 +53,3 @@ export async function GET(request: Request) {
     });
   }
 }
-
-/** Re-export for scripts that need to validate URLs */
-export { commonsLandmarkImageUrl };
