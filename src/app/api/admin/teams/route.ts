@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const createSchema = z.object({
   name: z.string().min(2).max(40),
-  leaderName: z.string().min(2).max(60),
+  leaderName: z.string().min(2).max(60).optional(),
   pin: z.string().min(4).max(12).regex(/^\d+$/, "PIN must be digits only"),
 });
 
@@ -33,12 +33,14 @@ export async function POST(request: Request) {
   }
 
   const pinHash = await hashPin(parsed.data.pin);
+  const teamName = parsed.data.name.trim();
+  const leaderName = parsed.data.leaderName?.trim() || teamName;
   try {
     const team = await prisma.team.create({
       data: {
         gameId: game.id,
-        name: parsed.data.name.trim(),
-        leaderName: parsed.data.leaderName.trim(),
+        name: teamName,
+        leaderName,
         pinHash,
         balance: game.startingBalance,
       },

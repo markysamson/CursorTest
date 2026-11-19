@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
@@ -294,9 +295,9 @@ export default function TeamAppPage() {
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <GeoTracker onUpdate={onGeoUpdate} />
-          <a href="/rules" className="text-xs font-semibold text-cloudera-orange-dark underline">
+          <Link href="/rules" className="text-xs font-semibold text-cloudera-orange-dark underline">
             Rules
-          </a>
+          </Link>
         </div>
         {geoError && <p className="mt-2 text-xs text-red-600">{geoError}</p>}
         {game.status === "SETUP" && (
@@ -369,14 +370,6 @@ export default function TeamAppPage() {
                       >
                         {style?.label ?? prop.colorGroup}
                       </span>
-                      <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${prop.latitude},${prop.longitude}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[10px] font-semibold text-cloudera-orange-dark underline"
-                      >
-                        Directions
-                      </a>
                     </div>
                   </div>
                   {prop.canBuyHotel && game.status === "ACTIVE" && (
@@ -514,15 +507,6 @@ export default function TeamAppPage() {
                     </span>
                   )}
                 </button>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="shrink-0 text-xs font-semibold text-cloudera-orange-dark underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Map
-                </a>
               </li>
             );
           })}

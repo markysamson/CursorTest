@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
+import { RulesPageFooter } from "@/components/RulesPageFooter";
 import { BOARD_SET_CONFIG } from "@/lib/board-sets";
 import { MISSED_VISIT_RENT_MULTIPLIER, RENT_PRICE_RATIO } from "@/lib/property-economics";
 
@@ -86,26 +86,26 @@ export default function RulesPage() {
               complete the purchase.
             </li>
             <li>
-              Each team can only check in once per square (buy or pay rent). Completed squares disappear
-              from &quot;You&apos;re here — check in&quot;.
+              Each team can only check in once per property (buy or pay rent). Completed properties
+              disappear from &quot;You&apos;re here — check in&quot;.
             </li>
             <li>
-              You cannot see which rival owns a square. Your view is only <strong>Owned</strong> (your team)
+              You cannot see which rival owns a property. Your view is only <strong>Owned</strong> (your team)
               or <strong>Unowned</strong>.
             </li>
-            <li>Rent goes to the owning team. Hotels double the rent rivals pay on that square.</li>
+            <li>Rent goes to the owning team. Hotels double the rent rivals pay on that property.</li>
           </ul>
         </div>
 
         <div>
           <h2 className="text-lg font-bold">Hotels</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Own every property in a colour group to unlock hotels on those squares.</li>
+            <li>Own every property in a colour group to unlock hotels on those properties.</li>
             <li>
               Build a hotel from <strong>Your properties</strong> at any time — you do not need to be
-              standing at the square.
+              standing at the property.
             </li>
-            <li>Hotel cost equals the property price; rent doubles for that square.</li>
+            <li>Hotel cost equals the property price; rent doubles for that property.</li>
           </ul>
         </div>
 
@@ -133,23 +133,7 @@ export default function RulesPage() {
         </div>
       </section>
 
-      <div className="mt-10 flex flex-col gap-3">
-        <Link
-          href="/team/login"
-          className="btn-primary rounded-xl py-3 text-center text-sm font-semibold"
-        >
-          Team login
-        </Link>
-        <Link
-          href="/admin/login"
-          className="btn-secondary rounded-xl py-3 text-center text-sm font-semibold"
-        >
-          Manager login
-        </Link>
-        <Link href="/" className="text-center text-sm font-medium text-cloudera-gray underline">
-          Back to home
-        </Link>
-      </div>
+      <RulesPageFooter />
     </main>
   );
 }

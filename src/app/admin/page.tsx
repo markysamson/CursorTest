@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [teamForm, setTeamForm] = useState({ name: "", leaderName: "", pin: "" });
+  const [teamForm, setTeamForm] = useState({ name: "", pin: "" });
   const [busy, setBusy] = useState(false);
   const [newGameBoard, setNewGameBoard] = useState<BoardSetId>("LONDON_FULL");
 
@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
       alert(j.error ?? "Could not create team");
       return;
     }
-    setTeamForm({ name: "", leaderName: "", pin: "" });
+    setTeamForm({ name: "", pin: "" });
     load();
   }
 
@@ -354,7 +354,7 @@ export default function AdminDashboardPage() {
             </p>
           )}
           {game.status !== "FINISHED" && (
-          <form onSubmit={createTeam} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <form onSubmit={createTeam} className="mt-4 grid gap-3">
             <input
               placeholder="Team name"
               className="input-field py-2 text-sm"
@@ -363,15 +363,8 @@ export default function AdminDashboardPage() {
               required
             />
             <input
-              placeholder="Leader name"
-              className="input-field py-2 text-sm"
-              value={teamForm.leaderName}
-              onChange={(e) => setTeamForm((f) => ({ ...f, leaderName: e.target.value }))}
-              required
-            />
-            <input
               placeholder="4–12 digit PIN"
-              className="input-field py-2 text-sm sm:col-span-2"
+              className="input-field py-2 text-sm"
               value={teamForm.pin}
               onChange={(e) => setTeamForm((f) => ({ ...f, pin: e.target.value }))}
               pattern="\d{4,12}"
@@ -380,7 +373,7 @@ export default function AdminDashboardPage() {
             <button
               type="submit"
               disabled={busy}
-              className="btn-primary rounded-xl py-2 text-sm sm:col-span-2 disabled:opacity-50"
+              className="btn-primary rounded-xl py-2 text-sm disabled:opacity-50"
             >
               Add team
             </button>
