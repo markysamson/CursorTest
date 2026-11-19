@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/db";
+import { missedVisitPenalty } from "@/lib/property-economics";
 
-/**
- * End the run: charge each team 2× base rent (to the bank) for every board square they never visited.
- */
+/** End the run and charge missed-square penalties to the bank (1.5× rent per unvisited stop). */
 export async function finishGame(gameId: string) {
   const game = await prisma.game.findUnique({ where: { id: gameId } });
   if (!game || game.status === "FINISHED") {
@@ -26,7 +25,7 @@ export async function finishGame(gameId: string) {
         });
         if (visited) continue;
 
-        const penalty = location.rent * 2;
+        const penalty = missedVisitPenalty(location.rent);
         await tx.team.update({
           where: { id: team.id },
           data: { balance: { decrement: penalty } },

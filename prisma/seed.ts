@@ -5,6 +5,8 @@ import {
   LONDON_LOCATIONS,
   SAFFRON_WALDEN_LOCATIONS,
 } from "../src/lib/locations-data";
+import { commonsLandmarkImageUrl } from "../src/lib/landmark-image-url";
+import { rentFromPrice } from "../src/lib/property-economics";
 
 const prisma = createPrismaClient();
 
@@ -22,6 +24,7 @@ async function main() {
       where: { boardSet, name: { notIn: names } },
     });
     for (const loc of locations) {
+      const rent = rentFromPrice(loc.price);
       await prisma.location.upsert({
         where: {
           boardSet_name: { boardSet, name: loc.name },
@@ -31,18 +34,20 @@ async function main() {
           name: loc.name,
           colorGroup: loc.colorGroup,
           price: loc.price,
-          rent: loc.rent,
+          rent,
           latitude: loc.latitude,
           longitude: loc.longitude,
           boardOrder: loc.boardOrder,
+          landmarkImageUrl: commonsLandmarkImageUrl(loc.commonsFile),
         },
         update: {
           colorGroup: loc.colorGroup,
           price: loc.price,
-          rent: loc.rent,
+          rent,
           latitude: loc.latitude,
           longitude: loc.longitude,
           boardOrder: loc.boardOrder,
+          landmarkImageUrl: commonsLandmarkImageUrl(loc.commonsFile),
         },
       });
     }
@@ -56,7 +61,8 @@ async function main() {
         boardSet: "LONDON_FULL",
         status: "SETUP",
         startingBalance: 1500,
-        geofenceRadiusM: 120,
+        geofenceRadiusM: 80,
+        showTeamMap: true,
       },
     });
   }

@@ -148,7 +148,7 @@ export async function processLocationCheckIn(params: {
   if (!ownership) {
     if (!selfiePath) {
       throw new GameActionError(
-        "Upload a team selfie to purchase this property.",
+        `Take a team selfie with ${location.name} visible behind you to purchase this property.`,
         422,
         "SELFIE_REQUIRED",
       );

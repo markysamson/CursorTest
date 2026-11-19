@@ -16,6 +16,7 @@ type Game = {
   status: "SETUP" | "ACTIVE" | "FINISHED";
   startingBalance: number;
   geofenceRadiusM: number;
+  showTeamMap?: boolean;
 };
 type Ownership = {
   id: string;
@@ -199,6 +200,15 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <a href="/rules" className="btn-secondary rounded-xl px-4 py-2 text-sm font-semibold">
+            Rules
+          </a>
+          <a
+            href="/admin/config"
+            className="btn-secondary rounded-xl px-4 py-2 text-sm font-semibold"
+          >
+            Run settings
+          </a>
           {game.status === "SETUP" && (
             <button
               type="button"

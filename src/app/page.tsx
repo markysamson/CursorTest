@@ -43,7 +43,7 @@ export default function HomePage() {
         >
           <span className="text-lg font-semibold text-cloudera-navy">Rules</span>
           <span className="mt-1 block text-sm font-medium text-cloudera-gray">
-            How buying, rent, hotels &amp; scoring work
+            Landmarks, buying, rent, hotels &amp; scoring
           </span>
         </Link>
       </div>
