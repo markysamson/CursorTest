@@ -42,6 +42,7 @@ type Dashboard = {
   mapProperties: MapPropertyMarker[];
   mapTeams: MapTeamMarker[];
   teamsWithoutLocation: { id: string; name: string; leaderName: string }[];
+  boardStopCounts?: Partial<Record<BoardSetId, number>>;
 };
 
 export default function AdminDashboardPage() {
@@ -155,7 +156,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const { game, leaderboard, mapProperties, mapTeams, teamsWithoutLocation } = data;
+  const { game, leaderboard, mapProperties, mapTeams, teamsWithoutLocation, boardStopCounts } = data;
 
   if (!game) {
     return (
@@ -202,6 +203,12 @@ export default function AdminDashboardPage() {
         <div className="flex flex-wrap gap-2">
           <a href="/rules" className="btn-secondary rounded-xl px-4 py-2 text-sm font-semibold">
             Rules
+          </a>
+          <a
+            href="/admin/properties"
+            className="btn-secondary rounded-xl px-4 py-2 text-sm font-semibold"
+          >
+            Properties
           </a>
           <a
             href="/admin/config"
@@ -268,7 +275,7 @@ export default function AdminDashboardPage() {
                   <p className="font-bold text-cloudera-navy">{cfg.label}</p>
                   <p className="mt-1 text-sm font-medium text-cloudera-gray">{cfg.subtitle}</p>
                   <p className="mt-2 text-xs font-semibold text-cloudera-orange-dark">
-                    {cfg.stopCount} stops · {cfg.suggestedDuration}
+                    {boardStopCounts?.[id] ?? cfg.stopCount} stops · {cfg.suggestedDuration}
                   </p>
                 </button>
               );
@@ -309,7 +316,7 @@ export default function AdminDashboardPage() {
                   <p className="font-bold text-cloudera-navy">{cfg.label}</p>
                   <p className="mt-1 text-sm font-medium text-cloudera-gray">{cfg.subtitle}</p>
                   <p className="mt-2 text-xs font-semibold text-cloudera-orange-dark">
-                    {cfg.stopCount} stops · {cfg.suggestedDuration} · £{cfg.startingBalance} start ·{" "}
+                    {boardStopCounts?.[id] ?? cfg.stopCount} stops · {cfg.suggestedDuration} · £{cfg.startingBalance} start ·{" "}
                     {cfg.geofenceRadiusM}m geofence
                   </p>
                 </button>

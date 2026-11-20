@@ -129,6 +129,11 @@ export default function RulesPage() {
             <li>
               <strong>Run settings</strong> — geofence distance and whether teams see the map.
             </li>
+            <li>
+              <strong>Properties</strong> — rename properties, move their pin on the map, change their
+              reference photo, and add or delete properties on any board. Changes reach teams straight
+              away, so fix positions before the run where possible.
+            </li>
           </ul>
         </div>
       </section>

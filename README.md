@@ -7,7 +7,9 @@ A GPS-verified team activity inspired by the London Monopoly board. Managers cre
 - **Manager console** (`/admin`): create teams with PINs, start/end the run, live leaderboard, property ownership with selfies, activity feed
 - **Team app** (`/team`): mobile-friendly board list, **interactive map** (your team + all properties), continuous GPS tracking, geofenced check-in, selfie capture to buy unowned properties, automatic rent payments
 - **Live maps**: OpenStreetMap via Leaflet — managers see every team’s last reported position; teams see themselves and all property squares
-- **Four boards:** Full London (22 stops), **City of London** (14 stops), **Saffron Walden** (14 stops in Essex), or **Wendens Ambo** (8-stop ~1 hour village loop) — manager picks in SETUP before starting the run
+- **Four boards:** Full London, **City of London**, **Saffron Walden** (Essex), or **Wendens Ambo** (~1 hour village loop) — manager picks in SETUP before starting the run
+- **Property editor** (`/admin/properties`): admins can rename properties, move the pin (map, address search, current location, or pasted coordinates), set the reference photo (upload, camera, Wikimedia Commons search), mark properties verified, and add or delete properties. Wikidata suggestions are offered per property or in bulk, always for the admin to review before applying.
+- **Seed data is a starting point:** `npm run db:seed` only fills a board that has no properties yet. It never overwrites or restores properties an admin has edited or deleted.
 
 ## Quick start
 

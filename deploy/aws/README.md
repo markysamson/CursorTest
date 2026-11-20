@@ -249,7 +249,7 @@ If certificate issuance fails, check: DNS propagated, security group allows **80
 
 ## Updates
 
-Pull **`main`**, reinstall deps, **seed** (new board locations), and **rebuild** (board picker is compiled into `.next`):
+Pull **`main`**, reinstall deps, run migrations, and **rebuild**. The seed step is safe to repeat: it only fills a board that has no properties, so property edits, photos and deletions made in `/admin/properties` are kept. Uploaded property photos live in `/var/lib/monopoly-run/uploads/landmarks`, so include that folder in backups.
 
 ```bash
 sudo systemctl stop monopoly-run

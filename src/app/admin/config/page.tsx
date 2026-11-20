@@ -121,6 +121,9 @@ export default function AdminConfigPage() {
         <Link href="/rules" className="font-semibold text-cloudera-orange-dark underline">
           Game rules
         </Link>
+        <Link href="/admin/properties" className="font-semibold text-cloudera-orange-dark underline">
+          Edit properties
+        </Link>
         <Link href="/admin" className="font-semibold text-cloudera-orange-dark underline">
           Back to manager console
         </Link>

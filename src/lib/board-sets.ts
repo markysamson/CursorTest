@@ -20,7 +20,7 @@ export const BOARD_SET_CONFIG: Record<
 > = {
   LONDON_FULL: {
     label: "Full London",
-    subtitle: "Classic 22-stop board across the city",
+    subtitle: "Classic board across the city",
     startingBalance: 1500,
     geofenceRadiusM: 80,
     suggestedDuration: "Full day",
@@ -28,7 +28,7 @@ export const BOARD_SET_CONFIG: Record<
   },
   CITY_OF_LONDON: {
     label: "City of London",
-    subtitle: "Compact 14-stop board around Liverpool Street",
+    subtitle: "Compact board around Liverpool Street",
     startingBalance: 1200,
     geofenceRadiusM: 65,
     suggestedDuration: "2–3 hours",
@@ -36,7 +36,7 @@ export const BOARD_SET_CONFIG: Record<
   },
   SAFFRON_WALDEN: {
     label: "Saffron Walden",
-    subtitle: "14-stop Essex market town trail from Market Square",
+    subtitle: "Essex market town trail from Market Square",
     startingBalance: 1200,
     geofenceRadiusM: 65,
     suggestedDuration: "2–3 hours",
@@ -44,7 +44,7 @@ export const BOARD_SET_CONFIG: Record<
   },
   WENDENS_AMBO: {
     label: "Wendens Ambo",
-    subtitle: "9-stop loop in Wendens Ambo village — about 1 hour on foot",
+    subtitle: "Loop in Wendens Ambo village — about 1 hour on foot",
     startingBalance: 900,
     geofenceRadiusM: 50,
     suggestedDuration: "~1 hour",
