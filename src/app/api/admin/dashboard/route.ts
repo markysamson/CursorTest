@@ -36,6 +36,14 @@ export async function GET() {
         })
       : [];
 
+    const stopCountRows = await prisma.location.groupBy({
+      by: ["boardSet"],
+      _count: { _all: true },
+    });
+    const boardStopCounts = Object.fromEntries(
+      stopCountRows.map((row) => [row.boardSet, row._count._all]),
+    );
+
     const ownershipByLocationId = new Map(
       game?.ownerships.map((o) => [o.locationId, o.team.name]) ?? [],
     );
@@ -106,6 +114,7 @@ export async function GET() {
       mapProperties,
       mapTeams,
       teamsWithoutLocation,
+      boardStopCounts,
     });
   } catch (error) {
     console.error("[admin/dashboard]", error);

@@ -19,6 +19,7 @@ type LocationState = {
   price: number;
   rent: number;
   rentDue: number;
+  photoRev: string;
   latitude: number;
   longitude: number;
   distanceM: number | null;
@@ -78,8 +79,8 @@ export default function TeamAppPage() {
   const pendingLocation = useRef<string | null>(null);
   const [selfieStepLocationId, setSelfieStepLocationId] = useState<string | null>(null);
 
-  const openLandmarkPreview = useCallback((loc: { id: string; name: string }) => {
-    setPhotoPreview({ name: loc.name, url: landmarkImageProxyUrl(loc.id) });
+  const openLandmarkPreview = useCallback((loc: { id: string; name: string; photoRev?: string }) => {
+    setPhotoPreview({ name: loc.name, url: landmarkImageProxyUrl(loc.id, loc.photoRev) });
   }, []);
 
   const onGeoUpdate = useCallback((pos: GeoPosition | null, err: string | null) => {
@@ -413,7 +414,7 @@ export default function TeamAppPage() {
                   >
                     <LandmarkPhoto
                       name={loc.name}
-                      imageUrl={landmarkImageProxyUrl(loc.id)}
+                      imageUrl={landmarkImageProxyUrl(loc.id, loc.photoRev)}
                       className="h-36 w-full rounded-xl object-cover"
                     />
                   </button>
@@ -483,7 +484,7 @@ export default function TeamAppPage() {
                 >
                   <LandmarkPhoto
                     name={loc.name}
-                    imageUrl={landmarkImageProxyUrl(loc.id)}
+                    imageUrl={landmarkImageProxyUrl(loc.id, loc.photoRev)}
                     className="h-14 w-14 shrink-0 rounded-lg object-cover"
                   />
                   <div className="min-w-0 flex-1">

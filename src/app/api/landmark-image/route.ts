@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { isUploadedLandmarkPhoto } from "@/lib/upload";
 import { NextResponse } from "next/server";
 
 const PLACEHOLDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
@@ -25,6 +26,13 @@ export async function GET(request: Request) {
   if (!remoteUrl) {
     return new NextResponse(PLACEHOLDER_SVG, {
       headers: { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=300" },
+    });
+  }
+
+  if (isUploadedLandmarkPhoto(remoteUrl)) {
+    return new NextResponse(null, {
+      status: 302,
+      headers: { Location: remoteUrl, "Cache-Control": "public, max-age=86400" },
     });
   }
 

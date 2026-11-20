@@ -17,33 +17,26 @@ const SETS = [
   { boardSet: "WENDENS_AMBO" as const, locations: WENDENS_AMBO_LOCATIONS },
 ];
 
+/**
+ * Properties are managed by admins in the app (names, positions, photos, create/delete).
+ * The seed only populates a board that has no properties yet, so redeploying never
+ * overwrites or resurrects anything an admin has changed.
+ */
 async function main() {
   for (const { boardSet, locations } of SETS) {
-    const names = locations.map((loc) => loc.name);
-    await prisma.location.deleteMany({
-      where: { boardSet, name: { notIn: names } },
-    });
+    const existing = await prisma.location.count({ where: { boardSet } });
+    if (existing > 0) {
+      continue;
+    }
+
     for (const loc of locations) {
-      const rent = rentFromPrice(loc.price);
-      await prisma.location.upsert({
-        where: {
-          boardSet_name: { boardSet, name: loc.name },
-        },
-        create: {
+      await prisma.location.create({
+        data: {
           boardSet,
           name: loc.name,
           colorGroup: loc.colorGroup,
           price: loc.price,
-          rent,
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          boardOrder: loc.boardOrder,
-          landmarkImageUrl: commonsLandmarkImageUrl(loc.commonsFile),
-        },
-        update: {
-          colorGroup: loc.colorGroup,
-          price: loc.price,
-          rent,
+          rent: rentFromPrice(loc.price),
           latitude: loc.latitude,
           longitude: loc.longitude,
           boardOrder: loc.boardOrder,

@@ -2,6 +2,7 @@ import { getTeamSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { distanceMeters } from "@/lib/geo";
 import { boardSetLabel } from "@/lib/board-sets";
+import { photoRevision } from "@/lib/landmark-image-url";
 import {
   effectiveRent,
   hotelCost,
@@ -111,6 +112,7 @@ export async function GET(request: Request) {
       latitude: loc.latitude,
       longitude: loc.longitude,
       boardOrder: loc.boardOrder,
+      photoRev: photoRevision(loc.landmarkImageUrl),
       /** From this team's perspective only — rivals' ownership is hidden. */
       possession: ownedByYou ? ("owned" as const) : ("unowned" as const),
       ownedByYou,

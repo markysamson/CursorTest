@@ -72,6 +72,8 @@ model Location {
   longitude  Float
   boardOrder Int
   landmarkImageUrl String?
+  verified   Boolean  @default(false)
+  wikidataId String?
   ownerships PropertyOwnership[]
   visits     Visit[]
 
