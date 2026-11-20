@@ -110,6 +110,18 @@ export default function RulesPage() {
         </div>
 
         <div>
+          <h2 className="text-lg font-bold">Chance cards</h2>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            <li>The manager can send a Chance card to every team at any time during the run.</li>
+            <li>The card names an activity, a reward, and a time limit.</li>
+            <li>
+              Send a photo of the activity before the time runs out. The reward is added only after the
+              manager approves the photo.
+            </li>
+          </ul>
+        </div>
+
+        <div>
           <h2 className="text-lg font-bold">Ending the run</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>The run does not end automatically when every property is sold.</li>
@@ -125,7 +137,7 @@ export default function RulesPage() {
         <div>
           <h2 className="text-lg font-bold">Manager console</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Create teams, start and end the run, and view the live map and leaderboard.</li>
+            <li>Create teams, start and end the run, send Chance cards, and view the live map and leaderboard.</li>
             <li>
               <strong>Run settings</strong> — geofence distance and whether teams see the map.
             </li>

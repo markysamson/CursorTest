@@ -28,6 +28,12 @@ enum VisitType {
   END_PENALTY
 }
 
+enum ChanceSubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Game {
   id                 String     @id @default(cuid())
   name               String
@@ -41,6 +47,7 @@ model Game {
   teams              Team[]
   ownerships         PropertyOwnership[]
   visits             Visit[]
+  chanceCards        ChanceCard[]
 }
 
 model Team {
@@ -57,6 +64,7 @@ model Team {
   createdAt DateTime @default(now())
   ownerships PropertyOwnership[]
   visits    Visit[]
+  chanceSubmissions ChanceSubmission[]
 
   @@unique([gameId, name])
 }
@@ -113,4 +121,31 @@ model Visit {
   createdAt    DateTime  @default(now())
 
   @@index([gameId, teamId, locationId])
+}
+
+model ChanceCard {
+  id          String             @id @default(cuid())
+  gameId      String
+  game        Game               @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  activity    String
+  reward      Int
+  deadlineAt  DateTime
+  createdAt   DateTime           @default(now())
+  submissions ChanceSubmission[]
+
+  @@index([gameId])
+}
+
+model ChanceSubmission {
+  id           String                 @id @default(cuid())
+  chanceCardId String
+  chanceCard   ChanceCard             @relation(fields: [chanceCardId], references: [id], onDelete: Cascade)
+  teamId       String
+  team         Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  selfiePath   String
+  status       ChanceSubmissionStatus @default(PENDING)
+  submittedAt  DateTime               @default(now())
+  reviewedAt   DateTime?
+
+  @@unique([chanceCardId, teamId])
 }

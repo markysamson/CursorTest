@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { ChanceCardButton, ChanceCardInbox } from "@/components/admin/ChanceCards";
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
+import type { AdminChanceCard } from "@/lib/chance-types";
 import { BOARD_SET_CONFIG, getBoardSetConfig, normalizeBoardSet, type BoardSetId } from "@/lib/board-sets";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
 import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
@@ -43,6 +45,7 @@ type Dashboard = {
   mapTeams: MapTeamMarker[];
   teamsWithoutLocation: { id: string; name: string; leaderName: string }[];
   boardStopCounts?: Partial<Record<BoardSetId, number>>;
+  chanceCards?: AdminChanceCard[];
 };
 
 export default function AdminDashboardPage() {
@@ -156,7 +159,11 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const { game, leaderboard, mapProperties, mapTeams, teamsWithoutLocation, boardStopCounts } = data;
+  const { game, leaderboard, mapProperties, mapTeams, teamsWithoutLocation, boardStopCounts, chanceCards = [] } = data;
+  const pendingChanceReviews = chanceCards.reduce(
+    (count, card) => count + card.submissions.filter((submission) => submission.status === "PENDING").length,
+    0,
+  );
 
   if (!game) {
     return (
@@ -201,6 +208,12 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <ChanceCardButton
+            gameStatus={game.status}
+            teamCount={game.teams.length}
+            pendingCount={pendingChanceReviews}
+            onSent={() => void load()}
+          />
           <a href="/rules" className="btn-secondary rounded-xl px-4 py-2 text-sm font-semibold">
             Rules
           </a>
@@ -249,6 +262,8 @@ export default function AdminDashboardPage() {
           </button>
         </div>
       </header>
+
+      <ChanceCardInbox cards={chanceCards} teams={game.teams} onChanged={() => void load()} />
 
       {game.status === "FINISHED" && (
         <section className="board-card mb-6 rounded-2xl border-cloudera-blue/30 bg-cloudera-blue-soft p-6">

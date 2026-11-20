@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
+import { TeamChanceCards } from "@/components/team/TeamChanceCards";
+import type { TeamChanceCard } from "@/lib/chance-types";
 import { GeoTracker, type GeoPosition } from "@/components/GeoTracker";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
 import { LandmarkPhoto } from "@/components/LandmarkPhoto";
@@ -65,6 +67,7 @@ type TeamState = {
     createdAt: string;
     location: { name: string };
   }[];
+  chanceCards?: TeamChanceCard[];
 };
 
 export default function TeamAppPage() {
@@ -234,7 +237,7 @@ export default function TeamAppPage() {
     );
   }
 
-  const { game, team, locations, ownedProperties } = state;
+  const { game, team, locations, ownedProperties, chanceCards = [] } = state;
   const nearby = locations.filter(
     (l) => l.inRange && !l.alreadyCompleted && l.action === "purchase",
   );
@@ -314,6 +317,12 @@ export default function TeamAppPage() {
           </p>
         )}
       </header>
+
+      <TeamChanceCards
+        cards={chanceCards}
+        gameFinished={game.status === "FINISHED"}
+        onSubmitted={() => void loadState()}
+      />
 
       {game.showTeamMap && (
         <section className="board-card mb-4 rounded-2xl p-3">

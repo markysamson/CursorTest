@@ -91,6 +91,42 @@ export async function GET() {
         }))
         .sort((a, b) => b.balance - a.balance) ?? [];
 
+    const chanceRows = game
+      ? await prisma.chanceCard.findMany({
+          where: { gameId: game.id },
+          orderBy: { createdAt: "desc" },
+          include: {
+            submissions: {
+              include: { team: { select: { id: true, name: true } } },
+              orderBy: { submittedAt: "asc" },
+            },
+          },
+        })
+      : [];
+    const chanceHorizon = now - 6 * 60 * 60 * 1000;
+    const chanceCards = chanceRows
+      .filter(
+        (card) =>
+          card.deadlineAt.getTime() > now ||
+          card.createdAt.getTime() > chanceHorizon ||
+          card.submissions.some((submission) => submission.status === "PENDING"),
+      )
+      .map((card) => ({
+        id: card.id,
+        activity: card.activity,
+        reward: card.reward,
+        deadlineAt: card.deadlineAt.toISOString(),
+        createdAt: card.createdAt.toISOString(),
+        submissions: card.submissions.map((submission) => ({
+          id: submission.id,
+          teamId: submission.teamId,
+          teamName: submission.team.name,
+          selfiePath: submission.selfiePath,
+          status: submission.status,
+          submittedAt: submission.submittedAt.toISOString(),
+        })),
+      }));
+
     const gamePayload = game
       ? {
           id: game.id,
@@ -115,6 +151,7 @@ export async function GET() {
       mapTeams,
       teamsWithoutLocation,
       boardStopCounts,
+      chanceCards,
     });
   } catch (error) {
     console.error("[admin/dashboard]", error);

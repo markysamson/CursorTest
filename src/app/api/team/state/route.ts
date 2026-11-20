@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Session invalid" }, { status: 401 });
   }
 
-  const [team, locations, ownerships, recentVisits, completedCheckIns] = await Promise.all([
+  const [team, locations, ownerships, recentVisits, completedCheckIns, chanceRows] = await Promise.all([
     prisma.team.findUnique({ where: { id: session.teamId } }),
     prisma.location.findMany({
       where: { boardSet: game.boardSet },
@@ -48,6 +48,11 @@ export async function GET(request: Request) {
         visitType: { in: ["PURCHASE", "RENT"] },
       },
       select: { locationId: true },
+    }),
+    prisma.chanceCard.findMany({
+      where: { gameId: session.gameId },
+      orderBy: { createdAt: "desc" },
+      include: { submissions: { where: { teamId: session.teamId } } },
     }),
   ]);
 
@@ -159,6 +164,26 @@ export async function GET(request: Request) {
     ({ _rivalOccupied: _, ...rest }) => rest,
   );
 
+  const chanceNow = Date.now();
+  const chanceCards = chanceRows.flatMap((card) => {
+    const submission = card.submissions[0] ?? null;
+    const open = card.deadlineAt.getTime() > chanceNow;
+    const recentlyReviewed =
+      submission?.reviewedAt != null &&
+      chanceNow - submission.reviewedAt.getTime() < 30 * 60 * 1000;
+    const waiting = submission?.status === "PENDING";
+    if (!open && !waiting && !recentlyReviewed) return [];
+    return [
+      {
+        id: card.id,
+        activity: card.activity,
+        reward: card.reward,
+        deadlineAt: card.deadlineAt.toISOString(),
+        submission: submission ? { status: submission.status } : null,
+      },
+    ];
+  });
+
   return NextResponse.json({
     game: {
       name: game.name,
@@ -177,5 +202,6 @@ export async function GET(request: Request) {
     locations: sanitizedLocations,
     ownedProperties,
     recentVisits,
+    chanceCards,
   });
 }
