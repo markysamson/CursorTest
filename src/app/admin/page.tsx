@@ -360,7 +360,8 @@ export default function AdminDashboardPage() {
           properties={mapProperties}
           teams={mapTeams}
           geofenceRadiusM={game.geofenceRadiusM}
-          heightClassName="h-80 md:h-[28rem]"
+          frame="board"
+          heightClassName="h-[70vh] min-h-[32rem]"
         />
         {teamsWithoutLocation.length > 0 && (
           <p className="mt-3 text-xs font-semibold text-cloudera-orange-dark">

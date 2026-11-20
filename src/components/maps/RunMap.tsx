@@ -6,7 +6,7 @@ import { TEAM_MARKER_COLORS } from "@/lib/map-types";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Fragment, useEffect, useMemo, useRef } from "react";
-import { Circle, CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
+import { Circle, CircleMarker, MapContainer, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
 const LONDON_CENTER: [number, number] = [51.5074, -0.1278];
 
@@ -26,34 +26,68 @@ type Props = {
   teams: MapTeamMarker[];
   /** Check-in distance in metres. Each property is ringed with a circle of this radius. */
   geofenceRadiusM?: number;
+  /**
+   * `board` frames every property (and its check-in circle) and ignores team positions.
+   * `everyone` frames properties and teams. Either way, later updates do not move the view.
+   */
+  frame?: "board" | "everyone";
+  onMapClick?: (latitude: number, longitude: number) => void;
   className?: string;
   heightClassName?: string;
 };
 
-/** Fit the map once on load so polling updates do not reset the user’s zoom. */
-function FitBoundsOnce({ points }: { points: [number, number][] }) {
+/** Fit once on open so polling updates do not reset the user’s zoom. */
+function FitBoundsOnce({
+  points,
+  radiusM,
+}: {
+  points: [number, number][];
+  radiusM: number;
+}) {
   const map = useMap();
   const hasFitted = useRef(false);
+  const pointsKey = points.map((p) => p.join(",")).join("|");
 
   useEffect(() => {
     if (hasFitted.current) return;
-    if (points.length === 0) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (cancelled || hasFitted.current) return;
+      hasFitted.current = true;
+      map.invalidateSize();
+      if (points.length === 0) {
+        map.setView(LONDON_CENTER, 13);
+        return;
+      }
+      const bounds = L.latLngBounds(points.map(([lat, lng]) => L.latLng(lat, lng)));
+      if (radiusM > 0) {
+        for (const [lat, lng] of points) {
+          bounds.extend(L.latLng(lat, lng).toBounds(radiusM));
+        }
+      }
+      if (points.length === 1 && radiusM <= 0) {
+        map.setView(points[0], 16);
+        return;
+      }
+      map.fitBounds(bounds, { padding: [36, 36], maxZoom: 17 });
+    }, 60);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+    // pointsKey stands in for the coordinate list so a new array identity does not refit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, pointsKey, radiusM]);
 
-    hasFitted.current = true;
-    if (points.length === 1) {
-      map.setView(points[0], 15);
-      return;
-    }
-    map.fitBounds(L.latLngBounds(points), { padding: [36, 36], maxZoom: 15 });
-  }, [map, points]);
+  return null;
+}
 
-  useEffect(() => {
-    if (points.length > 0) return;
-    if (hasFitted.current) return;
-    hasFitted.current = true;
-    map.setView(LONDON_CENTER, 13);
-  }, [map, points.length]);
-
+function MapClick({ onClick }: { onClick: (latitude: number, longitude: number) => void }) {
+  useMapEvents({
+    click(event) {
+      onClick(event.latlng.lat, event.latlng.lng);
+    },
+  });
   return null;
 }
 
@@ -66,16 +100,20 @@ export function RunMap({
   properties,
   teams,
   geofenceRadiusM = 0,
+  frame = "everyone",
+  onMapClick,
   className = "",
   heightClassName = "h-72 md:h-96",
 }: Props) {
   const boundsPoints = useMemo(() => {
     const pts: [number, number][] = properties.map((p) => [p.latitude, p.longitude]);
-    for (const t of teams) {
-      pts.push([t.latitude, t.longitude]);
+    if (frame === "everyone") {
+      for (const t of teams) {
+        pts.push([t.latitude, t.longitude]);
+      }
     }
     return pts;
-  }, [properties, teams]);
+  }, [properties, teams, frame]);
 
   const boundsKey = useMemo(
     () => `${properties.length}:${properties[0]?.id ?? ""}`,
@@ -84,22 +122,23 @@ export function RunMap({
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl border border-cloudera-border ${className}`}
-      style={{ minHeight: "18rem" }}
+      className={`overflow-hidden rounded-2xl border border-cloudera-border ${heightClassName} ${onMapClick ? "cursor-crosshair" : ""} ${className}`}
+      style={{ minHeight: "16rem" }}
     >
       <MapContainer
         key={boundsKey}
         center={LONDON_CENTER}
         zoom={13}
         scrollWheelZoom
-        className={`${heightClassName} w-full z-0`}
-        style={{ minHeight: "18rem", height: "100%" }}
+        className="z-0 h-full w-full"
+        style={{ height: "100%", minHeight: "16rem" }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <FitBoundsOnce points={boundsPoints} />
+        <FitBoundsOnce points={boundsPoints} radiusM={frame === "board" ? geofenceRadiusM : 0} />
+        {onMapClick && <MapClick onClick={onMapClick} />}
 
         {properties.map((p) => {
           const fill = GROUP_PIN_COLORS[p.colorGroup] ?? "#64748b";

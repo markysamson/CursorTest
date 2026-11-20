@@ -190,6 +190,7 @@ export async function GET(request: Request) {
       status: game.status,
       geofenceRadiusM: game.geofenceRadiusM,
       showTeamMap: game.showTeamMap,
+      testMode: game.testMode,
       boardSet: game.boardSet,
       boardSetLabel: boardSetLabel(game.boardSet),
     },

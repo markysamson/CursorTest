@@ -12,9 +12,9 @@ export default function RulesPage() {
       <ClouderaLogo href="/" size="sm" />
       <h1 className="mt-6 text-2xl font-bold text-cloudera-navy">Monopoly Run — rules</h1>
       <p className="mt-2 text-sm text-cloudera-gray">
-        GPS team game on real landmark stops: preview reference photos, check in on location, buy with a
-        selfie when needed, pay rent, and build hotels. Your manager runs the board from the admin
-        console.
+        Monopoly Run is a GPS team game played at real landmarks. Preview the reference photos, check in at each property,
+        buy with a selfie when one is needed, pay rent, and build hotels. The manager runs the board from
+        the manager console.
       </p>
 
       <section className="mt-8 space-y-6 text-sm leading-relaxed text-cloudera-navy">
@@ -23,21 +23,24 @@ export default function RulesPage() {
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>The manager creates teams, adjusts run settings if needed, and starts the run when ready.</li>
             <li>Team leaders sign in on mobile with their team PIN.</li>
-            <li>Allow location access — check-ins only work when GPS shows you at the landmark.</li>
+            <li>
+              Allow location access. A check-in works only when your position is at the property, unless the
+              manager has turned on test mode.
+            </li>
           </ul>
         </div>
 
         <div>
           <h2 className="text-lg font-bold">Landmarks &amp; photos</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Each stop is a real-world landmark, not a street name.</li>
+            <li>Each property is a real landmark, not a street name.</li>
             <li>
-              The board list shows a <strong>reference photo</strong> for each stop. Tap the photo or
-              property row to open a larger version so your team knows what to look for.
+              The board list shows a <strong>reference photo</strong> for each property. Tap the photo or
+              the property row to open a larger version, so the team knows what to look for.
             </li>
             <li>
-              To <strong>buy</strong> an unowned stop, take a team selfie with the landmark visible behind
-              you (like the reference shot).
+              To <strong>buy</strong> an unowned property, take a team selfie with the landmark visible
+              behind you, in the same way as the reference photo.
             </li>
           </ul>
         </div>
@@ -45,8 +48,8 @@ export default function RulesPage() {
         <div>
           <h2 className="text-lg font-bold">Check-in radius</h2>
           <p className="mt-2">
-            You must be within the run&apos;s geofence distance of a landmark to check in. The manager can
-            change this under <strong>Run settings</strong>. Default radii for new games (metres):
+            You must be within the run&apos;s check-in distance of a property. The manager sets that
+            distance in <strong>Run settings</strong>. These are the distances a new game starts with:
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {(
@@ -61,15 +64,16 @@ export default function RulesPage() {
             ))}
           </ul>
           <p className="mt-2 text-cloudera-gray">
-            Games already in progress keep the radius saved for that run.
+            A game that is already under way keeps the distance saved for that run.
           </p>
         </div>
 
         <div>
           <h2 className="text-lg font-bold">Team map</h2>
           <p className="mt-2">
-            The manager can turn the live map on or off in Run settings. When it is off, teams still see
-            the landmark list, reference photos, and GPS check-in.
+            The manager can show or hide the live map in Run settings. When the map is hidden, teams still
+            see the property list, the reference photos, and GPS check-in. In test mode the map stays
+            visible, and a team can tap it to set their position instead of using GPS.
           </p>
         </div>
 
@@ -82,7 +86,7 @@ export default function RulesPage() {
             </li>
             <li>
               When you arrive, tap <strong>Buy property</strong>. If another team already owns it, rent is
-              taken immediately (no selfie). If it is unowned, you&apos;ll be asked to take a team selfie to
+              taken straight away and no selfie is needed. If it is unowned, you take a team selfie to
               complete the purchase.
             </li>
             <li>
@@ -113,10 +117,11 @@ export default function RulesPage() {
           <h2 className="text-lg font-bold">Chance cards</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>The manager can send a Chance card to every team at any time during the run.</li>
-            <li>The card names an activity, a reward, and a time limit.</li>
+            <li>Each card has an activity, a reward, and a time limit.</li>
             <li>
               Send a photo of the activity before the time runs out. The reward is added only after the
-              manager approves the photo.
+              manager approves the photo. A paid card stays on your page, under your properties, without
+              the timer.
             </li>
           </ul>
         </div>
@@ -128,8 +133,8 @@ export default function RulesPage() {
             <li>The manager ends the run from the manager console.</li>
             <li>
               When the run ends, each team pays{" "}
-              <strong>{missedMultiplier}× the base rent</strong> to the bank for every board stop they never
-              visited during the game.
+              <strong>{missedMultiplier}× the base rent</strong> to the bank for every property they did not
+              visit during the game.
             </li>
           </ul>
         </div>
@@ -139,7 +144,7 @@ export default function RulesPage() {
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Create teams, start and end the run, send Chance cards, and view the live map and leaderboard.</li>
             <li>
-              <strong>Run settings</strong> — geofence distance and whether teams see the map.
+              <strong>Run settings</strong> — check-in distance, whether teams see the map, and test mode.
             </li>
             <li>
               <strong>Properties</strong> — rename properties, move their pin on the map, change their

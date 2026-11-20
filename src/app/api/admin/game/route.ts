@@ -23,6 +23,7 @@ const patchSchema = z.object({
   startingBalance: z.number().int().min(100).max(100000).optional(),
   geofenceRadiusM: z.number().int().min(30).max(500).optional(),
   showTeamMap: z.boolean().optional(),
+  testMode: z.boolean().optional(),
   boardSet: z.enum(BOARD_SET_IDS).optional(),
 });
 

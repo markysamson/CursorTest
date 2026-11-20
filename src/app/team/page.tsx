@@ -56,6 +56,7 @@ type TeamState = {
     status: string;
     geofenceRadiusM: number;
     showTeamMap: boolean;
+    testMode: boolean;
     boardSetLabel: string;
   };
   team: { id: string; name: string; leaderName: string; balance: number };
@@ -73,6 +74,7 @@ type TeamState = {
 export default function TeamAppPage() {
   const router = useRouter();
   const [geo, setGeo] = useState<GeoPosition | null>(null);
+  const [pin, setPin] = useState<GeoPosition | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [state, setState] = useState<TeamState | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -91,9 +93,12 @@ export default function TeamAppPage() {
     setGeoError(err);
   }, []);
 
+  const testMode = state?.game.testMode === true;
+  const here = testMode && pin ? pin : geo;
+
   const loadState = useCallback(async () => {
     const qs =
-      geo != null ? `?lat=${geo.latitude}&lng=${geo.longitude}` : "";
+      here != null ? `?lat=${here.latitude}&lng=${here.longitude}` : "";
     const res = await fetch(`/api/team/state${qs}`, { credentials: "same-origin" });
     if (res.status === 401) {
       router.replace("/team/login");
@@ -102,7 +107,7 @@ export default function TeamAppPage() {
     if (res.ok) {
       setState(await res.json());
     }
-  }, [geo, router]);
+  }, [here, router]);
 
   useEffect(() => {
     const boot = window.setTimeout(() => void loadState(), 0);
@@ -114,8 +119,8 @@ export default function TeamAppPage() {
   }, [loadState]);
 
   useEffect(() => {
-    if (geo == null) return;
-    const { latitude, longitude } = geo;
+    if (here == null) return;
+    const { latitude, longitude } = here;
     let cancelled = false;
     const send = async () => {
       if (cancelled) return;
@@ -135,22 +140,22 @@ export default function TeamAppPage() {
       cancelled = true;
       window.clearInterval(t);
     };
-  }, [geo?.latitude, geo?.longitude]);
+  }, [here?.latitude, here?.longitude]);
 
   async function performCheckIn(
     locationId: string,
     options?: { selfie?: File; buyHotel?: boolean },
   ) {
-    if (!geo) {
-      setMessage("Waiting for GPS before check-in.");
+    if (!here) {
+      setMessage(testMode ? "Tap the map to set your location before check-in." : "Waiting for GPS before check-in.");
       return;
     }
     setCheckingIn(locationId);
     setMessage(null);
     const form = new FormData();
     form.set("locationId", locationId);
-    form.set("latitude", String(geo.latitude));
-    form.set("longitude", String(geo.longitude));
+    form.set("latitude", String(here.latitude));
+    form.set("longitude", String(here.longitude));
     if (options?.selfie) form.set("selfie", options.selfie);
     if (options?.buyHotel) form.set("buyHotel", "true");
 
@@ -255,13 +260,13 @@ export default function TeamAppPage() {
     possession: loc.possession,
   }));
 
-  const mapTeams: MapTeamMarker[] = geo
+  const mapTeams: MapTeamMarker[] = here
     ? [
         {
           id: "self",
           name: team.name,
-          latitude: geo.latitude,
-          longitude: geo.longitude,
+          latitude: here.latitude,
+          longitude: here.longitude,
           leaderName: team.leaderName,
           isSelf: true,
         },
@@ -312,33 +317,47 @@ export default function TeamAppPage() {
         )}
         {game.status === "FINISHED" && (
           <p className="mt-2 rounded-lg bg-amber-100 px-3 py-2 text-xs font-medium text-amber-950">
-            This run has ended. Unvisited stops were charged at 1.5× rent to the bank. Your balance above
-            is final.
+            This run has ended. Unvisited properties were charged at 1.5× rent to the bank. Your balance
+            above is final.
           </p>
         )}
       </header>
 
       <TeamChanceCards
-        cards={chanceCards}
+        cards={chanceCards.filter((card) => card.submission?.status !== "APPROVED")}
         gameFinished={game.status === "FINISHED"}
+        alerts={chanceCards[0]?.submission?.status !== "APPROVED"}
         onSubmitted={() => void loadState()}
       />
 
-      {game.showTeamMap && (
+      {(game.showTeamMap || game.testMode) && (
         <section className="board-card mb-4 rounded-2xl p-3">
           <h2 className="section-heading mb-2 px-1">Map</h2>
+          {game.testMode && (
+            <p className="mb-2 px-1 text-xs font-medium text-cloudera-orange-dark">
+              Test mode is on. Tap the map to set your team&apos;s location. That position replaces GPS
+              until the manager turns test mode off.
+            </p>
+          )}
           <RunMapLazy
             properties={mapProperties}
             teams={mapTeams}
             geofenceRadiusM={game.geofenceRadiusM}
             heightClassName="h-64"
+            onMapClick={
+              game.testMode
+                ? (latitude, longitude) => setPin({ latitude, longitude, accuracy: 1 })
+                : undefined
+            }
           />
           <p className="mt-2 px-1 text-xs font-medium text-cloudera-gray">
             Shaded circles are the check-in area ({game.geofenceRadiusM}m around each property).
           </p>
-          {!geo && (
+          {!here && (
             <p className="mt-2 px-1 text-xs font-medium text-cloudera-gray">
-              Enable location to see your team on the map.
+              {game.testMode
+                ? "Tap the map to set your location."
+                : "Enable location to see your team on the map."}
             </p>
           )}
         </section>
@@ -356,8 +375,8 @@ export default function TeamAppPage() {
         </div>
         {ownedProperties.length === 0 ? (
           <p className="text-sm font-medium text-cloudera-gray">
-            You don&apos;t own any squares yet. Visit an unowned location, take a selfie, and buy your
-            first property.
+            You don&apos;t own any properties yet. Visit an unowned one, take a selfie, and buy your first
+            property.
           </p>
         ) : (
           <ul className="space-y-3">
@@ -408,6 +427,13 @@ export default function TeamAppPage() {
           </ul>
         )}
       </section>
+
+      <TeamChanceCards
+        cards={chanceCards.filter((card) => card.submission?.status === "APPROVED")}
+        gameFinished={game.status === "FINISHED"}
+        alerts={chanceCards[0]?.submission?.status === "APPROVED"}
+        onSubmitted={() => void loadState()}
+      />
 
       {message && (
         <p className="mb-4 rounded-xl border border-cloudera-blue/40 bg-cloudera-blue-soft px-4 py-3 text-sm font-medium text-cloudera-navy">

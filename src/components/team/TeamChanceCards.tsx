@@ -23,10 +23,13 @@ export function TeamChanceCards({
   cards,
   gameFinished,
   onSubmitted,
+  alerts = true,
 }: {
   cards: TeamChanceCard[];
   gameFinished: boolean;
   onSubmitted: () => void;
+  /** Only the newest card on the page should raise the dialog. */
+  alerts?: boolean;
 }) {
   const [now, setNow] = useState(() => Date.now());
   const [seen, setSeen] = useState<string[] | null>(null);
@@ -86,7 +89,7 @@ export function TeamChanceCards({
   // previous rejection cannot pop up over a photo the team just sent.
   const latest = cards[0];
   const popup =
-    seen && latest && latest.submission?.status !== "PENDING" && !seen.includes(alertKey(latest))
+    alerts && seen && latest && latest.submission?.status !== "PENDING" && !seen.includes(alertKey(latest))
       ? latest
       : undefined;
 
@@ -96,14 +99,22 @@ export function TeamChanceCards({
         {cards.map((card) => {
           const left = remaining(card.deadlineAt, now);
           const status = card.submission?.status;
-          const canSend = !gameFinished && left != null && status !== "PENDING" && status !== "APPROVED";
+          const paid = status === "APPROVED";
+          const canSend = !gameFinished && left != null && status !== "PENDING" && !paid;
           return (
-            <article key={card.id} className="rounded-2xl border-2 border-cloudera-orange bg-cloudera-orange-soft p-4">
+            <article
+              key={card.id}
+              className={
+                paid
+                  ? "board-card rounded-2xl p-4"
+                  : "rounded-2xl border-2 border-cloudera-orange bg-cloudera-orange-soft p-4"
+              }
+            >
               <p className="text-xs font-bold uppercase tracking-widest text-cloudera-orange-dark">Chance card</p>
               <h2 className="mt-1 text-lg font-bold text-cloudera-navy">{card.activity}</h2>
               <p className="mt-1 text-sm font-medium text-cloudera-navy">
                 £{card.reward} for the team
-                {left ? ` · ${left} left` : " · time's up"}
+                {!paid && (left ? ` · ${left} left` : " · time's up")}
               </p>
               {status === "PENDING" && (
                 <p className="mt-2 text-sm font-medium text-cloudera-navy">

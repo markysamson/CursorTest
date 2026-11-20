@@ -11,6 +11,7 @@ type GameConfig = {
   status: string;
   geofenceRadiusM: number;
   showTeamMap: boolean;
+  testMode?: boolean;
 };
 
 export default function AdminConfigPage() {
@@ -18,6 +19,7 @@ export default function AdminConfigPage() {
   const [game, setGame] = useState<GameConfig | null>(null);
   const [geofenceRadiusM, setGeofenceRadiusM] = useState(100);
   const [showTeamMap, setShowTeamMap] = useState(true);
+  const [testMode, setTestMode] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -33,11 +35,13 @@ export default function AdminConfigPage() {
       setGame(g);
       setGeofenceRadiusM(g.geofenceRadiusM);
       setShowTeamMap(g.showTeamMap);
+      setTestMode(g.testMode === true);
     }
   }, [router]);
 
   useEffect(() => {
-    void load();
+    const boot = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(boot);
   }, [load]);
 
   async function save(e: FormEvent) {
@@ -47,7 +51,7 @@ export default function AdminConfigPage() {
     const res = await fetch("/api/admin/game", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ geofenceRadiusM, showTeamMap }),
+      body: JSON.stringify({ geofenceRadiusM, showTeamMap, testMode }),
     });
     setBusy(false);
     if (!res.ok) {
@@ -78,7 +82,7 @@ export default function AdminConfigPage() {
           <span>
             <span className="block font-semibold text-cloudera-navy">Show map on team app</span>
             <span className="text-xs text-cloudera-gray">
-              When off, teams still see the landmark list and GPS check-in.
+              When off, teams still see the property list and GPS check-in.
             </span>
           </span>
           <input
@@ -89,12 +93,28 @@ export default function AdminConfigPage() {
           />
         </label>
 
+        <label className="flex cursor-pointer items-center justify-between gap-4">
+          <span>
+            <span className="block font-semibold text-cloudera-navy">Test mode</span>
+            <span className="text-xs text-cloudera-gray">
+              Teams set their location by tapping the map. That position replaces GPS, so you can rehearse
+              check-ins without travelling to each property. Turn this off for a real run.
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            checked={testMode}
+            onChange={(e) => setTestMode(e.target.checked)}
+            className="h-5 w-5 accent-cloudera-orange-dark"
+          />
+        </label>
+
         <div>
           <label htmlFor="geofence" className="block font-semibold text-cloudera-navy">
             GPS check-in range (metres)
           </label>
           <p className="text-xs text-cloudera-gray">
-            Teams must be within this distance of a landmark to buy or pay rent.
+            Teams must be within this distance of a property to buy or pay rent.
           </p>
           <input
             id="geofence"
