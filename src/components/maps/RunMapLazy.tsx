@@ -18,6 +18,8 @@ const RunMap = dynamic(() => import("./RunMap").then((m) => m.RunMap), {
 type Props = {
   properties: MapPropertyMarker[];
   teams: MapTeamMarker[];
+  /** Check-in distance in metres. Each property is ringed with a circle of this radius. */
+  geofenceRadiusM?: number;
   className?: string;
   heightClassName?: string;
 };

@@ -331,8 +331,9 @@ export default function AdminDashboardPage() {
           <div>
             <h2 className="text-lg font-bold text-cloudera-navy">Live map</h2>
             <p className="text-sm font-medium text-cloudera-gray">
-              Coloured dots are Monopoly properties; larger circles are team leaders&apos; latest GPS
-              positions (updates when teams are logged in on mobile).
+              Coloured dots are Monopoly properties, each ringed by its GPS check-in area (
+              {game.geofenceRadiusM}m). Bigger dots are team leaders&apos; latest GPS positions
+              (updates when teams are logged in on mobile).
             </p>
           </div>
           <p className="text-xs font-medium text-cloudera-gray">
@@ -340,7 +341,12 @@ export default function AdminDashboardPage() {
             properties
           </p>
         </div>
-        <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-80 md:h-[28rem]" />
+        <RunMapLazy
+          properties={mapProperties}
+          teams={mapTeams}
+          geofenceRadiusM={game.geofenceRadiusM}
+          heightClassName="h-80 md:h-[28rem]"
+        />
         {teamsWithoutLocation.length > 0 && (
           <p className="mt-3 text-xs font-semibold text-cloudera-orange-dark">
             No GPS yet:{" "}

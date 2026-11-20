@@ -5,8 +5,8 @@ import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 import { TEAM_MARKER_COLORS } from "@/lib/map-types";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useMemo, useRef } from "react";
-import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
+import { Fragment, useEffect, useMemo, useRef } from "react";
+import { Circle, CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
 
 const LONDON_CENTER: [number, number] = [51.5074, -0.1278];
 
@@ -24,6 +24,8 @@ const GROUP_PIN_COLORS: Record<string, string> = {
 type Props = {
   properties: MapPropertyMarker[];
   teams: MapTeamMarker[];
+  /** Check-in distance in metres. Each property is ringed with a circle of this radius. */
+  geofenceRadiusM?: number;
   className?: string;
   heightClassName?: string;
 };
@@ -63,6 +65,7 @@ function teamColor(teamId: string, teams: MapTeamMarker[]) {
 export function RunMap({
   properties,
   teams,
+  geofenceRadiusM = 0,
   className = "",
   heightClassName = "h-72 md:h-96",
 }: Props) {
@@ -102,35 +105,48 @@ export function RunMap({
           const fill = GROUP_PIN_COLORS[p.colorGroup] ?? "#64748b";
           const label = COLOR_GROUP_STYLES[p.colorGroup]?.label ?? p.colorGroup;
           return (
-            <CircleMarker
-              key={`prop-${p.id}`}
-              center={[p.latitude, p.longitude]}
-              radius={p.ownerName || p.possession === "owned" ? 9 : 7}
-              pathOptions={{
-                color: "#fef3c7",
-                weight: 2,
-                fillColor: fill,
-                fillOpacity: 0.95,
-              }}
-            >
-              <Popup>
-                <div className="text-sm text-slate-900">
-                  <p className="font-semibold">{p.name}</p>
-                  <p className="text-xs text-slate-600">{label}</p>
-                  {p.price != null && <p className="text-xs">Price £{p.price}</p>}
-                  {p.rent != null && <p className="text-xs">Rent £{p.rent}</p>}
-                  <p className="text-xs">
-                    {p.ownerName
-                      ? `Owned by ${p.ownerName}`
-                      : p.possession === "owned"
-                        ? "Owned (your team)"
-                        : p.possession === "unowned"
-                          ? "Unowned"
-                          : "Unowned"}
-                  </p>
-                </div>
-              </Popup>
-            </CircleMarker>
+            <Fragment key={`prop-${p.id}`}>
+              {geofenceRadiusM > 0 && (
+                <Circle
+                  center={[p.latitude, p.longitude]}
+                  radius={geofenceRadiusM}
+                  pathOptions={{
+                    color: fill,
+                    weight: 2,
+                    fillColor: fill,
+                    fillOpacity: 0.15,
+                  }}
+                />
+              )}
+              <CircleMarker
+                center={[p.latitude, p.longitude]}
+                radius={p.ownerName || p.possession === "owned" ? 9 : 7}
+                pathOptions={{
+                  color: "#fef3c7",
+                  weight: 2,
+                  fillColor: fill,
+                  fillOpacity: 0.95,
+                }}
+              >
+                <Popup>
+                  <div className="text-sm text-slate-900">
+                    <p className="font-semibold">{p.name}</p>
+                    <p className="text-xs text-slate-600">{label}</p>
+                    {p.price != null && <p className="text-xs">Price £{p.price}</p>}
+                    {p.rent != null && <p className="text-xs">Rent £{p.rent}</p>}
+                    <p className="text-xs">
+                      {p.ownerName
+                        ? `Owned by ${p.ownerName}`
+                        : p.possession === "owned"
+                          ? "Owned (your team)"
+                          : p.possession === "unowned"
+                            ? "Unowned"
+                            : "Unowned"}
+                    </p>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            </Fragment>
           );
         })}
 

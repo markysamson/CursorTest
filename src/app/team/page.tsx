@@ -318,7 +318,15 @@ export default function TeamAppPage() {
       {game.showTeamMap && (
         <section className="board-card mb-4 rounded-2xl p-3">
           <h2 className="section-heading mb-2 px-1">Map</h2>
-          <RunMapLazy properties={mapProperties} teams={mapTeams} heightClassName="h-64" />
+          <RunMapLazy
+            properties={mapProperties}
+            teams={mapTeams}
+            geofenceRadiusM={game.geofenceRadiusM}
+            heightClassName="h-64"
+          />
+          <p className="mt-2 px-1 text-xs font-medium text-cloudera-gray">
+            Shaded circles are the check-in area ({game.geofenceRadiusM}m around each property).
+          </p>
           {!geo && (
             <p className="mt-2 px-1 text-xs font-medium text-cloudera-gray">
               Enable location to see your team on the map.
