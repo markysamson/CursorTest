@@ -48,11 +48,17 @@ type Dashboard = {
   chanceCards?: AdminChanceCard[];
 };
 
+function randomPin() {
+  const [n] = crypto.getRandomValues(new Uint32Array(1));
+  return String(1000 + (n % 9000));
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [teamForm, setTeamForm] = useState({ name: "", pin: "" });
+  const [teamForm, setTeamForm] = useState(() => ({ name: "", pin: randomPin() }));
+  const [createdTeam, setCreatedTeam] = useState<{ name: string; pin: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [newGameBoard, setNewGameBoard] = useState<BoardSetId>("LONDON_FULL");
 
@@ -94,7 +100,8 @@ export default function AdminDashboardPage() {
       alert(j.error ?? "Could not create team");
       return;
     }
-    setTeamForm({ name: "", pin: "" });
+    setCreatedTeam({ name: teamForm.name, pin: teamForm.pin });
+    setTeamForm({ name: "", pin: randomPin() });
     load();
   }
 
@@ -290,7 +297,7 @@ export default function AdminDashboardPage() {
                   <p className="font-bold text-cloudera-navy">{cfg.label}</p>
                   <p className="mt-1 text-sm font-medium text-cloudera-gray">{cfg.subtitle}</p>
                   <p className="mt-2 text-xs font-semibold text-cloudera-orange-dark">
-                    {boardStopCounts?.[id] ?? cfg.stopCount} stops · {cfg.suggestedDuration}
+                    {boardStopCounts?.[id] ?? cfg.stopCount} properties · {cfg.suggestedDuration}
                   </p>
                 </button>
               );
@@ -311,7 +318,7 @@ export default function AdminDashboardPage() {
         <section className="board-card mb-6 rounded-2xl p-6">
           <h2 className="text-lg font-bold text-cloudera-navy">Choose board</h2>
           <p className="mt-1 text-sm font-medium text-cloudera-gray">
-            Pick the route before you start the run. Teams will only see stops on the selected board.
+            Pick the route before you start the run. Teams will only see properties on the selected board.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {(Object.keys(BOARD_SET_CONFIG) as BoardSetId[]).map((id) => {
@@ -331,7 +338,7 @@ export default function AdminDashboardPage() {
                   <p className="font-bold text-cloudera-navy">{cfg.label}</p>
                   <p className="mt-1 text-sm font-medium text-cloudera-gray">{cfg.subtitle}</p>
                   <p className="mt-2 text-xs font-semibold text-cloudera-orange-dark">
-                    {boardStopCounts?.[id] ?? cfg.stopCount} stops · {cfg.suggestedDuration} · £{cfg.startingBalance} start ·{" "}
+                    {boardStopCounts?.[id] ?? cfg.stopCount} properties · {cfg.suggestedDuration} · £{cfg.startingBalance} start ·{" "}
                     {cfg.geofenceRadiusM}m geofence
                   </p>
                 </button>
@@ -391,14 +398,33 @@ export default function AdminDashboardPage() {
               onChange={(e) => setTeamForm((f) => ({ ...f, name: e.target.value }))}
               required
             />
-            <input
-              placeholder="4–12 digit PIN"
-              className="input-field py-2 text-sm"
-              value={teamForm.pin}
-              onChange={(e) => setTeamForm((f) => ({ ...f, pin: e.target.value }))}
-              pattern="\d{4,12}"
-              required
-            />
+            <div>
+              <label htmlFor="team-pin" className="block text-xs font-semibold text-cloudera-navy">
+                Team PIN
+              </label>
+              <div className="mt-1 flex gap-2">
+                <input
+                  id="team-pin"
+                  placeholder="4–12 digit PIN"
+                  inputMode="numeric"
+                  className="input-field min-w-0 flex-1 py-2 text-sm"
+                  value={teamForm.pin}
+                  onChange={(e) => setTeamForm((f) => ({ ...f, pin: e.target.value }))}
+                  pattern="\d{4,12}"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setTeamForm((f) => ({ ...f, pin: randomPin() }))}
+                  className="btn-secondary shrink-0 rounded-xl px-3 py-2 text-xs font-semibold"
+                >
+                  New random PIN
+                </button>
+              </div>
+              <p className="mt-1 text-xs font-medium text-cloudera-gray">
+                A random 4-digit PIN is filled in. Type your own to replace it.
+              </p>
+            </div>
             <button
               type="submit"
               disabled={busy}
@@ -406,6 +432,12 @@ export default function AdminDashboardPage() {
             >
               Add team
             </button>
+            {createdTeam && (
+              <p className="rounded-xl border border-cloudera-blue/40 bg-cloudera-blue-soft px-3 py-2 text-sm font-medium text-cloudera-navy">
+                {createdTeam.name} created. PIN: <strong>{createdTeam.pin}</strong>. Pass this to the team
+                leader. It is not shown again.
+              </p>
+            )}
           </form>
           )}
           <ul className="mt-6 space-y-2">

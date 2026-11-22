@@ -17,7 +17,7 @@ export default async function HomePage() {
         <h1 className="mt-2 text-4xl font-bold text-cloudera-navy">Monopoly Run</h1>
         <p className="mt-4 text-sm leading-relaxed text-cloudera-gray">
           Race across real London streets. Verify your arrival with GPS, snap a selfie to buy
-          properties, and pay rent when you land on rival teams&apos; squares.
+          properties, and pay rent when you land on rival teams&apos; properties.
         </p>
       </div>
 

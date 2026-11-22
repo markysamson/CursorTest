@@ -165,7 +165,7 @@ export default function TeamAppPage() {
     if (!res.ok) {
       if (data.code === "SELFIE_REQUIRED") {
         setSelfieStepLocationId(locationId);
-        setMessage("This square is available — take a team selfie to complete your purchase.");
+        setMessage("This property is available — take a team selfie to complete your purchase.");
         return;
       }
       setMessage(data.error ?? "Check-in failed");
@@ -363,6 +363,72 @@ export default function TeamAppPage() {
         </section>
       )}
 
+      {message && (
+        <p className="mb-4 rounded-xl border border-cloudera-blue/40 bg-cloudera-blue-soft px-4 py-3 text-sm font-medium text-cloudera-navy">
+          {message}
+        </p>
+      )}
+
+      {nearby.length > 0 && (
+        <section className="mb-6">
+          <h2 className="section-heading mb-2">You&apos;re here — check in</h2>
+          <ul className="space-y-3">
+            {nearby.map((loc) => {
+              const style = COLOR_GROUP_STYLES[loc.colorGroup];
+              const needsSelfie = selfieStepLocationId === loc.id;
+              return (
+                <li key={loc.id} className="board-card rounded-2xl p-4">
+                  <button
+                    type="button"
+                    className="mb-3 w-full text-left"
+                    onClick={() => openLandmarkPreview(loc)}
+                  >
+                    <LandmarkPhoto
+                      name={loc.name}
+                      imageUrl={landmarkImageProxyUrl(loc.id, loc.photoRev)}
+                      className="h-36 w-full rounded-xl object-cover"
+                    />
+                  </button>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-cloudera-navy">{loc.name}</p>
+                      <p className="text-xs font-medium text-cloudera-gray">
+                        {loc.distanceM}m away · Price £{loc.price} · Rent £{loc.rentDue} ·{" "}
+                        {loc.possession === "owned" ? "Owned" : "Unowned"}
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-md px-2 py-1 text-[10px] font-medium uppercase ${style?.bg ?? "bg-white/10"}`}
+                    >
+                      {style?.label ?? loc.colorGroup}
+                    </span>
+                  </div>
+                  {game.status === "ACTIVE" && !needsSelfie && (
+                    <button
+                      type="button"
+                      disabled={!!checkingIn}
+                      onClick={() => attemptBuy(loc.id)}
+                      className="btn-primary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
+                    >
+                      {checkingIn === loc.id ? "Checking…" : "Buy property"}
+                    </button>
+                  )}
+                  {game.status === "ACTIVE" && needsSelfie && (
+                    <label
+                      htmlFor="team-selfie-capture"
+                      className="btn-primary mt-3 flex w-full cursor-pointer justify-center rounded-xl py-2.5 text-sm"
+                      onClick={() => armSelfieForLocation(loc.id)}
+                    >
+                      Take selfie to buy
+                    </label>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       <section className="board-card mb-4 rounded-2xl p-4">
         <div className="mb-3 flex items-baseline justify-between gap-2">
           <h2 className="section-heading">Your properties</h2>
@@ -435,75 +501,9 @@ export default function TeamAppPage() {
         onSubmitted={() => void loadState()}
       />
 
-      {message && (
-        <p className="mb-4 rounded-xl border border-cloudera-blue/40 bg-cloudera-blue-soft px-4 py-3 text-sm font-medium text-cloudera-navy">
-          {message}
-        </p>
-      )}
-
-      {nearby.length > 0 && (
-        <section className="mb-6">
-          <h2 className="section-heading mb-2">You&apos;re here — check in</h2>
-          <ul className="space-y-3">
-            {nearby.map((loc) => {
-              const style = COLOR_GROUP_STYLES[loc.colorGroup];
-              const needsSelfie = selfieStepLocationId === loc.id;
-              return (
-                <li key={loc.id} className="board-card rounded-2xl p-4">
-                  <button
-                    type="button"
-                    className="mb-3 w-full text-left"
-                    onClick={() => openLandmarkPreview(loc)}
-                  >
-                    <LandmarkPhoto
-                      name={loc.name}
-                      imageUrl={landmarkImageProxyUrl(loc.id, loc.photoRev)}
-                      className="h-36 w-full rounded-xl object-cover"
-                    />
-                  </button>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-semibold text-cloudera-navy">{loc.name}</p>
-                      <p className="text-xs font-medium text-cloudera-gray">
-                        {loc.distanceM}m away · Price £{loc.price} · Rent £{loc.rentDue} ·{" "}
-                        {loc.possession === "owned" ? "Owned" : "Unowned"}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-md px-2 py-1 text-[10px] font-medium uppercase ${style?.bg ?? "bg-white/10"}`}
-                    >
-                      {style?.label ?? loc.colorGroup}
-                    </span>
-                  </div>
-                  {game.status === "ACTIVE" && !needsSelfie && (
-                    <button
-                      type="button"
-                      disabled={!!checkingIn}
-                      onClick={() => attemptBuy(loc.id)}
-                      className="btn-primary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
-                    >
-                      {checkingIn === loc.id ? "Checking…" : "Buy property"}
-                    </button>
-                  )}
-                  {game.status === "ACTIVE" && needsSelfie && (
-                    <label
-                      htmlFor="team-selfie-capture"
-                      className="btn-primary mt-3 flex w-full cursor-pointer justify-center rounded-xl py-2.5 text-sm"
-                      onClick={() => armSelfieForLocation(loc.id)}
-                    >
-                      Take selfie to buy
-                    </label>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
-
       <section>
         <h2 className="section-heading mb-2">
-          {game.boardSetLabel} board ({locations.length} stops)
+          {game.boardSetLabel} board ({locations.length} properties)
         </h2>
         <ul className="space-y-2">
           {locations.map((loc) => {
