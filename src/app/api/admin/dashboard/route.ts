@@ -48,6 +48,10 @@ export async function GET() {
       game?.ownerships.map((o) => [o.locationId, o.team.name]) ?? [],
     );
 
+    const selfieByLocationId = new Map(
+      game?.ownerships.map((o) => [o.locationId, o.selfiePath]) ?? [],
+    );
+
     const mapProperties = locations.map((loc) => ({
       id: loc.id,
       name: loc.name,
@@ -55,6 +59,7 @@ export async function GET() {
       longitude: loc.longitude,
       colorGroup: loc.colorGroup,
       ownerName: ownershipByLocationId.get(loc.id) ?? null,
+      selfiePath: selfieByLocationId.get(loc.id) ?? null,
       price: loc.price,
     }));
 

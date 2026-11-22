@@ -23,6 +23,7 @@ enum BoardSet {
 enum VisitType {
   PURCHASE
   RENT
+  PASS
   OWN_VISIT
   HOTEL_PURCHASE
   END_PENALTY

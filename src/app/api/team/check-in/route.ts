@@ -15,16 +15,15 @@ export async function POST(request: Request) {
   const longitude = Number(form.get("longitude"));
   const selfie = form.get("selfie");
   const buyHotel = String(form.get("buyHotel") ?? "") === "true";
+  const rawDecision = String(form.get("decision") ?? "");
+  const decision = rawDecision === "buy" || rawDecision === "pass" ? rawDecision : undefined;
 
   if (!locationId || Number.isNaN(latitude) || Number.isNaN(longitude)) {
     return NextResponse.json({ error: "locationId and GPS coordinates required" }, { status: 400 });
   }
 
   try {
-    let selfiePath: string | undefined;
-    if (selfie instanceof File && selfie.size > 0) {
-      selfiePath = await saveSelfie(selfie, session.gameId);
-    }
+    const selfieFile = selfie instanceof File && selfie.size > 0 ? selfie : undefined;
 
     const result = await processLocationCheckIn({
       teamId: session.teamId,
@@ -32,7 +31,8 @@ export async function POST(request: Request) {
       locationId,
       latitude,
       longitude,
-      selfiePath,
+      persistSelfie: selfieFile ? () => saveSelfie(selfieFile, session.gameId) : undefined,
+      decision,
       buyHotel,
     });
 

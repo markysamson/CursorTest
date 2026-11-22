@@ -8,6 +8,8 @@ export type MapPropertyMarker = {
   ownerName?: string | null;
   price?: number;
   rent?: number;
+  /** Manager map only: the owning team's purchase selfie. */
+  selfiePath?: string | null;
   /** Team view — never reveals other owners */
   possession?: "owned" | "unowned";
 };

@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { ChanceCardButton, ChanceCardInbox } from "@/components/admin/ChanceCards";
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
+import { PhotoLightbox, type LightboxItem } from "@/components/admin/PhotoLightbox";
+import { SelfieGallery } from "@/components/admin/SelfieGallery";
+import { PropertyColorBar } from "@/components/PropertyColor";
 import { RunMapLazy } from "@/components/maps/RunMapLazy";
 import type { AdminChanceCard } from "@/lib/chance-types";
 import { BOARD_SET_CONFIG, getBoardSetConfig, normalizeBoardSet, type BoardSetId } from "@/lib/board-sets";
@@ -22,7 +25,9 @@ type Game = {
 };
 type Ownership = {
   id: string;
+  teamId: string;
   selfiePath: string;
+  purchasedAt: string;
   team: { name: string };
   location: { name: string; colorGroup: string };
 };
@@ -31,6 +36,7 @@ type Visit = {
   visitType: string;
   amount: number;
   createdAt: string;
+  selfiePath: string | null;
   team: { name: string };
   location: { name: string };
 };
@@ -60,6 +66,8 @@ export default function AdminDashboardPage() {
   const [teamForm, setTeamForm] = useState(() => ({ name: "", pin: randomPin() }));
   const [createdTeam, setCreatedTeam] = useState<{ name: string; pin: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [propertyTeamId, setPropertyTeamId] = useState<string>("ALL");
+  const [lightbox, setLightbox] = useState<{ items: LightboxItem[]; index: number } | null>(null);
   const [newGameBoard, setNewGameBoard] = useState<BoardSetId>("LONDON_FULL");
 
   const load = useCallback(async () => {
@@ -191,6 +199,14 @@ export default function AdminDashboardPage() {
       </main>
     );
   }
+
+  const visibleOwnerships =
+    propertyTeamId === "ALL" ? game.ownerships : game.ownerships.filter((o) => o.teamId === propertyTeamId);
+  const ownershipPhotos: LightboxItem[] = visibleOwnerships.map((o) => ({
+    src: o.selfiePath,
+    title: o.location.name,
+    subtitle: `Owned by ${o.team.name} · bought ${new Date(o.purchasedAt).toLocaleString()}`,
+  }));
 
   const boardSet = normalizeBoardSet(game.boardSet);
   const boardCfg = getBoardSetConfig(boardSet);
@@ -494,27 +510,74 @@ export default function AdminDashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="board-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-cloudera-navy">Property map</h2>
-          <ul className="mt-4 max-h-96 space-y-2 overflow-y-auto text-sm">
-            {game.ownerships.length === 0 && (
-              <p className="font-medium text-cloudera-gray">No properties purchased yet.</p>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg font-bold text-cloudera-navy">Property map</h2>
+            <p className="text-xs font-medium text-cloudera-gray">
+              {visibleOwnerships.length} of {game.ownerships.length} properties owned
+            </p>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Show properties for team">
+            {[{ id: "ALL", name: "All teams" }, ...game.teams].map((t) => {
+              const n =
+                t.id === "ALL"
+                  ? game.ownerships.length
+                  : game.ownerships.filter((o) => o.teamId === t.id).length;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setPropertyTeamId(t.id)}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                    propertyTeamId === t.id
+                      ? "border-cloudera-orange bg-cloudera-orange-soft text-cloudera-navy"
+                      : "border-cloudera-border bg-white text-cloudera-navy hover:border-cloudera-blue"
+                  }`}
+                >
+                  {t.name} ({n})
+                </button>
+              );
+            })}
+          </div>
+          <ul className="mt-4 max-h-[32rem] space-y-2 overflow-y-auto text-sm">
+            {visibleOwnerships.length === 0 && (
+              <p className="font-medium text-cloudera-gray">
+                {game.ownerships.length === 0
+                  ? "No properties purchased yet."
+                  : "This team does not own any properties yet."}
+              </p>
             )}
-            {game.ownerships.map((o) => {
+            {visibleOwnerships.map((o, i) => {
               const style = COLOR_GROUP_STYLES[o.location.colorGroup];
               return (
                 <li
                   key={o.id}
                   className="flex items-center gap-3 rounded-xl border border-cloudera-border bg-white p-2"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={o.selfiePath}
-                    alt=""
-                    className="h-12 w-12 rounded-lg object-cover"
-                  />
-                  <div>
+                  <PropertyColorBar group={o.location.colorGroup} />
+                  <button
+                    type="button"
+                    onClick={() => setLightbox({ items: ownershipPhotos, index: i })}
+                    className="shrink-0 overflow-hidden rounded-lg"
+                    aria-label={`View the ${o.location.name} selfie larger`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={o.selfiePath}
+                      alt=""
+                      loading="lazy"
+                      className="h-20 w-20 object-cover transition hover:scale-105"
+                    />
+                  </button>
+                  <div className="min-w-0">
                     <p className="font-semibold text-cloudera-navy">{o.location.name}</p>
                     <p className="text-xs font-medium text-cloudera-gray">Owned by {o.team.name}</p>
+                    <button
+                      type="button"
+                      onClick={() => setLightbox({ items: ownershipPhotos, index: i })}
+                      className="text-xs font-semibold text-cloudera-orange-dark underline"
+                    >
+                      View selfie
+                    </button>
                   </div>
                   <span className={`ml-auto rounded px-2 py-0.5 text-xs text-white ${style?.bg ?? "bg-zinc-500"}`}>
                     {style?.label ?? o.location.colorGroup}
@@ -533,18 +596,55 @@ export default function AdminDashboardPage() {
                 key={v.id}
                 className="rounded-xl border border-cloudera-border bg-cloudera-muted/40 px-3 py-2"
               >
-                <span className="font-semibold text-cloudera-navy">{v.team.name}</span> —{" "}
-                {v.visitType.toLowerCase()}{" "}
-                <span className="font-medium text-cloudera-orange-dark">{v.location.name}</span>
-                {v.amount > 0 && <span> (£{v.amount})</span>}
-                <span className="block text-xs font-medium text-cloudera-gray">
-                  {new Date(v.createdAt).toLocaleString()}
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-cloudera-navy">{v.team.name}</span> —{" "}
+                    {v.visitType.toLowerCase().replace("_", " ")}{" "}
+                    <span className="font-medium text-cloudera-orange-dark">{v.location.name}</span>
+                    {v.amount > 0 && <span> (£{v.amount})</span>}
+                    <span className="block text-xs font-medium text-cloudera-gray">
+                      {new Date(v.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  {v.selfiePath && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLightbox({
+                          items: [
+                            {
+                              src: v.selfiePath as string,
+                              title: v.location.name,
+                              subtitle: `${v.team.name} · ${v.visitType.toLowerCase()}${v.amount > 0 ? ` £${v.amount}` : ""} · ${new Date(v.createdAt).toLocaleString()}`,
+                            },
+                          ],
+                          index: 0,
+                        })
+                      }
+                      className="shrink-0 overflow-hidden rounded-lg"
+                      aria-label={`View ${v.team.name}'s selfie at ${v.location.name}`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={v.selfiePath} alt="" loading="lazy" className="h-12 w-12 object-cover" />
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
         </section>
       </div>
+
+      <SelfieGallery teams={game.teams} />
+
+      {lightbox && (
+        <PhotoLightbox
+          items={lightbox.items}
+          index={lightbox.index}
+          onIndex={(index) => setLightbox((prev) => (prev ? { ...prev, index } : prev))}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </main>
   );
 }

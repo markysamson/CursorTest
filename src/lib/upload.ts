@@ -54,3 +54,15 @@ export async function removeLandmarkPhotoFile(url: string | null | undefined): P
   if (!full.startsWith(root + path.sep)) return;
   await unlink(full).catch(() => undefined);
 }
+
+const SELFIE_URL_PATTERN = /^\/uploads\/([a-z0-9]+)\/([a-z0-9.-]+)$/i;
+
+/** Map a stored selfie URL to its file on disk, or null when it is not a team upload. */
+export function resolveSelfieFile(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const match = SELFIE_URL_PATTERN.exec(url);
+  if (!match || url.includes("..")) return null;
+  const root = path.resolve(getUploadRoot());
+  const full = path.resolve(root, match[1], match[2]);
+  return full.startsWith(root + path.sep) ? full : null;
+}

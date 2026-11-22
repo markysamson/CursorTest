@@ -39,8 +39,11 @@ export default function RulesPage() {
               the property row to open a larger version, so the team knows what to look for.
             </li>
             <li>
-              To <strong>buy</strong> an unowned property, take a team selfie with the landmark visible
-              behind you, in the same way as the reference photo.
+              Every check-in needs a team selfie with the landmark visible behind you, in the same way as
+              the reference photo. This applies whether you buy, pass or pay rent.
+            </li>
+            <li>
+              Each property carries its <strong>colour group</strong> as a coloured band in your lists.
             </li>
           </ul>
         </div>
@@ -85,13 +88,19 @@ export default function RulesPage() {
               rent is about {rentPercent}% of the purchase price (rounded).
             </li>
             <li>
-              When you arrive, tap <strong>Buy property</strong>. If another team already owns it, rent is
-              taken straight away and no selfie is needed. If it is unowned, you take a team selfie to
-              complete the purchase.
+              When you arrive, tap <strong>Check in</strong> and take the team selfie.
             </li>
             <li>
-              Each team can only check in once per property (buy or pay rent). Completed properties
-              disappear from &quot;You&apos;re here — check in&quot;.
+              If another team already owns the property, rent is taken straight away. If nobody owns it,
+              you choose <strong>Buy</strong> or <strong>Pass</strong>.
+            </li>
+            <li>
+              A message shows exactly what you did and how much you paid, and your new balance.
+            </li>
+            <li>
+              Each team can only check in once per property to buy or pay rent. Once you have, it
+              disappears from &quot;You&apos;re here — check in&quot;. If you pass, nothing is charged
+              and you can come back and buy it later.
             </li>
             <li>
               You cannot see which rival owns a property. Your view is only <strong>Owned</strong> (your team)
@@ -134,7 +143,7 @@ export default function RulesPage() {
             <li>
               When the run ends, each team pays{" "}
               <strong>{missedMultiplier}× the base rent</strong> to the bank for every property they did not
-              visit during the game.
+              visit during the game. Passing counts as a visit.
             </li>
           </ul>
         </div>

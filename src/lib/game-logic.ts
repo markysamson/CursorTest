@@ -29,18 +29,30 @@ async function assertActiveGame(gameId: string) {
   return game;
 }
 
+/** The only location fields a team needs back; rival ownership is never included. */
+function summarise(location: { id: string; name: string; colorGroup: string }) {
+  return { id: location.id, name: location.name, colorGroup: location.colorGroup };
+}
+
 export async function processLocationCheckIn(params: {
   teamId: string;
   gameId: string;
   locationId: string;
   latitude: number;
   longitude: number;
-  selfiePath?: string;
+  /**
+   * Stores the team's check-in selfie and returns its URL. Only called once the action is
+   * certain, so a selfie sent just to find out what the property is does not pile up on disk.
+   * Absent when no selfie was sent.
+   */
+  persistSelfie?: () => Promise<string>;
+  /** Required to buy or decline an unowned property. Ignored for rent. */
+  decision?: "buy" | "pass";
   buyHotel?: boolean;
   /** Hotels can be bought remotely; location check-ins still require geofence. */
   skipGeofence?: boolean;
 }) {
-  const { teamId, gameId, locationId, latitude, longitude, selfiePath, buyHotel, skipGeofence } =
+  const { teamId, gameId, locationId, latitude, longitude, persistSelfie, decision, buyHotel, skipGeofence } =
     params;
 
   const game = await assertActiveGame(gameId);
@@ -138,33 +150,71 @@ export async function processLocationCheckIn(params: {
 
     return {
       type: "HOTEL_PURCHASE" as const,
-      location,
-      team: result.updatedTeam,
+      location: summarise(location),
+      balanceAfter: result.updatedTeam.balance,
       amount: cost,
       rentNow: effectiveRent(location, { hasHotel: true }),
     };
   }
 
+  if (ownership?.teamId === teamId) {
+    throw new GameActionError("You already own this property.");
+  }
+
+  if (!persistSelfie) {
+    throw new GameActionError(
+      `Take a team selfie at ${location.name} to check in.`,
+      422,
+      "SELFIE_REQUIRED",
+    );
+  }
+
   if (!ownership) {
-    if (!selfiePath) {
-      throw new GameActionError(
-        `Take a team selfie with ${location.name} visible behind you to purchase this property.`,
-        422,
-        "SELFIE_REQUIRED",
-      );
+    if (!decision) {
+      return {
+        type: "CHOICE" as const,
+        location: summarise(location),
+        price: location.price,
+        balance: team.balance,
+        canAfford: team.balance >= location.price,
+      };
     }
+
+    if (decision === "pass") {
+      const selfiePath = await persistSelfie();
+      await prisma.visit.create({
+        data: {
+          gameId,
+          teamId,
+          locationId,
+          visitType: "PASS",
+          amount: 0,
+          selfiePath,
+          verifiedLat: latitude,
+          verifiedLng: longitude,
+        },
+      });
+      return {
+        type: "PASS" as const,
+        location: summarise(location),
+        amount: 0,
+        balanceAfter: team.balance,
+      };
+    }
+
     if (team.balance < location.price) {
       throw new GameActionError(
         `Insufficient funds. ${location.name} costs £${location.price} but you have £${team.balance}.`,
       );
     }
 
+    const selfiePath = await persistSelfie();
     const purchaseResult = await prisma.$transaction(async (tx) => {
       const updatedTeam = await tx.team.update({
         where: { id: teamId },
         data: { balance: { decrement: location.price } },
       });
-      const own = await tx.propertyOwnership.create({
+      await tx.propertyOwnership.create({
         data: {
           gameId,
           locationId,
@@ -186,20 +236,15 @@ export async function processLocationCheckIn(params: {
           verifiedLng: longitude,
         },
       });
-      return { updatedTeam, own };
+      return { updatedTeam };
     });
 
     return {
       type: "PURCHASE" as const,
-      location,
-      team: purchaseResult.updatedTeam,
-      ownership: purchaseResult.own,
+      location: summarise(location),
+      balanceAfter: purchaseResult.updatedTeam.balance,
       amount: location.price,
     };
-  }
-
-  if (ownership.teamId === teamId) {
-    throw new GameActionError("You already own this property.");
   }
 
   const rent = effectiveRent(location, ownership);
@@ -209,12 +254,13 @@ export async function processLocationCheckIn(params: {
     );
   }
 
+  const selfiePath = await persistSelfie();
   return prisma.$transaction(async (tx) => {
     const payer = await tx.team.update({
       where: { id: teamId },
       data: { balance: { decrement: rent } },
     });
-    const owner = await tx.team.update({
+    await tx.team.update({
       where: { id: ownership.teamId },
       data: { balance: { increment: rent } },
     });
@@ -225,22 +271,21 @@ export async function processLocationCheckIn(params: {
         locationId,
         visitType: "RENT",
         amount: rent,
+        selfiePath,
         verifiedLat: latitude,
         verifiedLng: longitude,
       },
     });
     return {
       type: "RENT" as const,
-      location,
-      team: payer,
+      location: summarise(location),
+      balanceAfter: payer.balance,
       amount: rent,
-      ownerBalance: owner.balance,
-      alreadyOwned: true as const,
     };
   });
 }
 
-/** Build a hotel without being at the property (uses the square’s coordinates for the visit log). */
+/** Build a hotel without being at the property (uses the property’s coordinates for the visit log). */
 export async function processRemoteHotelPurchase(params: {
   teamId: string;
   gameId: string;

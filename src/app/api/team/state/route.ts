@@ -26,7 +26,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Session invalid" }, { status: 401 });
   }
 
-  const [team, locations, ownerships, recentVisits, completedCheckIns, chanceRows] = await Promise.all([
+  const [team, locations, ownerships, recentVisits, completedCheckIns, passedVisits, chanceRows] =
+    await Promise.all([
     prisma.team.findUnique({ where: { id: session.teamId } }),
     prisma.location.findMany({
       where: { boardSet: game.boardSet },
@@ -49,6 +50,10 @@ export async function GET(request: Request) {
       },
       select: { locationId: true },
     }),
+    prisma.visit.findMany({
+      where: { gameId: session.gameId, teamId: session.teamId, visitType: "PASS" },
+      select: { locationId: true },
+    }),
     prisma.chanceCard.findMany({
       where: { gameId: session.gameId },
       orderBy: { createdAt: "desc" },
@@ -57,6 +62,7 @@ export async function GET(request: Request) {
   ]);
 
   const completedLocationIds = new Set(completedCheckIns.map((v) => v.locationId));
+  const passedLocationIds = new Set(passedVisits.map((v) => v.locationId));
 
   if (!team) {
     return NextResponse.json({ error: "Session invalid" }, { status: 401 });
@@ -102,9 +108,9 @@ export async function GET(request: Request) {
 
     const alreadyCompleted = completedLocationIds.has(loc.id);
 
-    let action: "purchase" | "none" = "none";
+    let action: "checkin" | "none" = "none";
     if (game.status === "ACTIVE" && inRange && !alreadyCompleted && !ownedByYou) {
-      action = "purchase";
+      action = "checkin";
     }
 
     return {
@@ -128,6 +134,7 @@ export async function GET(request: Request) {
       inRange,
       action,
       alreadyCompleted,
+      passedBefore: passedLocationIds.has(loc.id),
       /** For server-side logic only; never show rival names in UI */
       _rivalOccupied: ownedByOther,
     };

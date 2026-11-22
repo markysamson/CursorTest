@@ -12,6 +12,9 @@ import { LandmarkPhoto } from "@/components/LandmarkPhoto";
 import { LandmarkPhotoPreviewModal } from "@/components/LandmarkPhotoPreviewModal";
 import { landmarkImageProxyUrl } from "@/lib/landmark-image-url";
 import { COLOR_GROUP_STYLES } from "@/lib/locations-data";
+import { PropertyColorBar, PropertyColorChip } from "@/components/PropertyColor";
+import { CheckInOutcome, type CheckInOutcomeData } from "@/components/team/CheckInOutcome";
+import { resizeImageForUpload } from "@/lib/client-image";
 import type { MapPropertyMarker, MapTeamMarker } from "@/lib/map-types";
 
 type LocationState = {
@@ -26,10 +29,11 @@ type LocationState = {
   longitude: number;
   distanceM: number | null;
   inRange: boolean;
-  action: "purchase" | "none";
+  action: "checkin" | "none";
   possession: "owned" | "unowned";
   ownedByYou: boolean;
   alreadyCompleted: boolean;
+  passedBefore: boolean;
   hasHotel: boolean;
   hotelCost: number;
   canBuyHotel: boolean;
@@ -48,6 +52,14 @@ type OwnedProperty = {
   selfiePath: string;
   latitude: number;
   longitude: number;
+};
+
+type PendingChoice = {
+  locationId: string;
+  file: File;
+  previewUrl: string;
+  price: number;
+  canAfford: boolean;
 };
 
 type TeamState = {
@@ -82,7 +94,8 @@ export default function TeamAppPage() {
   const [photoPreview, setPhotoPreview] = useState<{ name: string; url: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingLocation = useRef<string | null>(null);
-  const [selfieStepLocationId, setSelfieStepLocationId] = useState<string | null>(null);
+  const [choice, setChoice] = useState<PendingChoice | null>(null);
+  const [outcome, setOutcome] = useState<CheckInOutcomeData | null>(null);
 
   const openLandmarkPreview = useCallback((loc: { id: string; name: string; photoRev?: string }) => {
     setPhotoPreview({ name: loc.name, url: landmarkImageProxyUrl(loc.id, loc.photoRev) });
@@ -142,9 +155,16 @@ export default function TeamAppPage() {
     };
   }, [here?.latitude, here?.longitude]);
 
+  function clearChoice() {
+    setChoice((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl);
+      return null;
+    });
+  }
+
   async function performCheckIn(
     locationId: string,
-    options?: { selfie?: File; buyHotel?: boolean },
+    options: { selfie: File; decision?: "buy" | "pass" },
   ) {
     if (!here) {
       setMessage(testMode ? "Tap the map to set your location before check-in." : "Waiting for GPS before check-in.");
@@ -156,45 +176,52 @@ export default function TeamAppPage() {
     form.set("locationId", locationId);
     form.set("latitude", String(here.latitude));
     form.set("longitude", String(here.longitude));
-    if (options?.selfie) form.set("selfie", options.selfie);
-    if (options?.buyHotel) form.set("buyHotel", "true");
+    form.set("selfie", options.selfie);
+    if (options.decision) form.set("decision", options.decision);
 
-    const res = await fetch("/api/team/check-in", { method: "POST", body: form });
+    let res: Response;
+    try {
+      res = await fetch("/api/team/check-in", { method: "POST", body: form });
+    } catch {
+      setCheckingIn(null);
+      setMessage("Could not reach the server. Check your signal and try again.");
+      return;
+    }
     setCheckingIn(null);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (data.code === "SELFIE_REQUIRED") {
-        setSelfieStepLocationId(locationId);
-        setMessage("This property is available — take a team selfie to complete your purchase.");
-        return;
-      }
       setMessage(data.error ?? "Check-in failed");
       return;
     }
-    setSelfieStepLocationId(null);
+
     const r = data.result;
-    if (r.type === "PURCHASE") {
-      setMessage(`Purchased ${r.location.name} for £${r.amount}!`);
-    } else if (r.type === "RENT") {
-      setMessage(
-        `This property is already owned by another team. Rent paid: £${r.amount} at ${r.location.name}.`,
-      );
-    } else if (r.type === "HOTEL_PURCHASE") {
-      setMessage(
-        `Hotel built at ${r.location.name} for £${r.amount}. Rent is now £${r.rentNow} when rivals visit.`,
-      );
-    } else {
-      setMessage(`Visit logged at ${r.location.name}.`);
+    if (r.type === "CHOICE") {
+      setChoice((prev) => {
+        if (prev) URL.revokeObjectURL(prev.previewUrl);
+        return {
+          locationId,
+          file: options.selfie,
+          previewUrl: URL.createObjectURL(options.selfie),
+          price: r.price,
+          canAfford: r.canAfford,
+        };
+      });
+      return;
     }
+
+    clearChoice();
+    setOutcome({
+      kind: r.type,
+      propertyName: r.location.name,
+      colorGroup: r.location.colorGroup,
+      amount: r.amount,
+      balanceAfter: r.balanceAfter,
+    });
     loadState();
   }
 
   function armSelfieForLocation(locationId: string) {
     pendingLocation.current = locationId;
-  }
-
-  function attemptBuy(locationId: string) {
-    void performCheckIn(locationId);
   }
 
   async function buyHotelRemote(locationId: string) {
@@ -213,19 +240,28 @@ export default function TeamAppPage() {
       return;
     }
     const r = data.result;
-    setMessage(
-      `Hotel built at ${r.location.name} for £${r.amount}. Rent is now £${r.rentNow} when rivals visit.`,
-    );
+    setOutcome({
+      kind: "HOTEL_PURCHASE",
+      propertyName: r.location.name,
+      colorGroup: r.location.colorGroup,
+      amount: r.amount,
+      balanceAfter: r.balanceAfter,
+      rentNow: r.rentNow,
+    });
     loadState();
   }
 
-  function onSelfieSelected(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onSelfieSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     const locId = pendingLocation.current;
     e.target.value = "";
     pendingLocation.current = null;
-    if (file && locId) {
-      performCheckIn(locId, { selfie: file });
+    if (!file || !locId) return;
+    try {
+      const photo = await resizeImageForUpload(file);
+      await performCheckIn(locId, { selfie: photo });
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Could not use that photo.");
     }
   }
 
@@ -244,8 +280,10 @@ export default function TeamAppPage() {
 
   const { game, team, locations, ownedProperties, chanceCards = [] } = state;
   const nearby = locations.filter(
-    (l) => l.inRange && !l.alreadyCompleted && l.action === "purchase",
+    (l) => l.inRange && !l.alreadyCompleted && l.action === "checkin",
   );
+  const activeChoice =
+    choice && nearby.some((l) => l.id === choice.locationId) ? choice : null;
   const portfolioValue = ownedProperties.reduce((sum, p) => sum + p.price, 0);
   const rentPerVisit = ownedProperties.reduce((sum, p) => sum + p.rentDue, 0);
 
@@ -374,54 +412,117 @@ export default function TeamAppPage() {
           <h2 className="section-heading mb-2">You&apos;re here — check in</h2>
           <ul className="space-y-3">
             {nearby.map((loc) => {
-              const style = COLOR_GROUP_STYLES[loc.colorGroup];
-              const needsSelfie = selfieStepLocationId === loc.id;
+              const choosing = activeChoice?.locationId === loc.id;
+              const colour = COLOR_GROUP_STYLES[loc.colorGroup];
               return (
-                <li key={loc.id} className="board-card rounded-2xl p-4">
-                  <button
-                    type="button"
-                    className="mb-3 w-full text-left"
-                    onClick={() => openLandmarkPreview(loc)}
-                  >
-                    <LandmarkPhoto
-                      name={loc.name}
-                      imageUrl={landmarkImageProxyUrl(loc.id, loc.photoRev)}
-                      className="h-36 w-full rounded-xl object-cover"
-                    />
-                  </button>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-semibold text-cloudera-navy">{loc.name}</p>
-                      <p className="text-xs font-medium text-cloudera-gray">
-                        {loc.distanceM}m away · Price £{loc.price} · Rent £{loc.rentDue} ·{" "}
-                        {loc.possession === "owned" ? "Owned" : "Unowned"}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-md px-2 py-1 text-[10px] font-medium uppercase ${style?.bg ?? "bg-white/10"}`}
-                    >
-                      {style?.label ?? loc.colorGroup}
-                    </span>
-                  </div>
-                  {game.status === "ACTIVE" && !needsSelfie && (
+                <li key={loc.id} className="board-card overflow-hidden rounded-2xl">
+                  <div className={`h-2 ${colour?.bg ?? "bg-zinc-400"}`} aria-hidden />
+                  <div className="p-4">
                     <button
                       type="button"
-                      disabled={!!checkingIn}
-                      onClick={() => attemptBuy(loc.id)}
-                      className="btn-primary mt-3 w-full rounded-xl py-2.5 text-sm disabled:opacity-60"
+                      className="mb-3 w-full text-left"
+                      onClick={() => openLandmarkPreview(loc)}
                     >
-                      {checkingIn === loc.id ? "Checking…" : "Buy property"}
+                      <LandmarkPhoto
+                        name={loc.name}
+                        imageUrl={landmarkImageProxyUrl(loc.id, loc.photoRev)}
+                        className="h-36 w-full rounded-xl object-cover"
+                      />
                     </button>
-                  )}
-                  {game.status === "ACTIVE" && needsSelfie && (
-                    <label
-                      htmlFor="team-selfie-capture"
-                      className="btn-primary mt-3 flex w-full cursor-pointer justify-center rounded-xl py-2.5 text-sm"
-                      onClick={() => armSelfieForLocation(loc.id)}
-                    >
-                      Take selfie to buy
-                    </label>
-                  )}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-cloudera-navy">{loc.name}</p>
+                        <p className="text-xs font-medium text-cloudera-gray">
+                          {loc.distanceM}m away · Price £{loc.price} · Rent £{loc.rentDue}
+                        </p>
+                      </div>
+                      <PropertyColorChip group={loc.colorGroup} />
+                    </div>
+
+                    {game.status === "ACTIVE" && !choosing && (
+                      <>
+                        {checkingIn === loc.id ? (
+                          <button
+                            type="button"
+                            disabled
+                            className="btn-primary mt-3 w-full rounded-xl py-2.5 text-sm"
+                          >
+                            Checking in…
+                          </button>
+                        ) : (
+                          <label
+                            htmlFor="team-selfie-capture"
+                            className={`btn-primary mt-3 flex w-full justify-center rounded-xl py-2.5 text-sm ${
+                              checkingIn ? "pointer-events-none opacity-60" : "cursor-pointer"
+                            }`}
+                            onClick={() => armSelfieForLocation(loc.id)}
+                          >
+                            Check in
+                          </label>
+                        )}
+                        <p className="mt-2 text-center text-xs font-medium text-cloudera-gray">
+                          Take a team selfie with the landmark behind you. If a rival owns this
+                          property, rent is taken straight away.
+                        </p>
+                      </>
+                    )}
+
+                    {game.status === "ACTIVE" && choosing && activeChoice && (
+                      <div className="mt-3 rounded-xl border border-cloudera-orange/40 bg-cloudera-orange-soft p-3">
+                        <div className="flex items-center gap-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={activeChoice.previewUrl}
+                            alt="Your check-in selfie"
+                            className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                          />
+                          <p className="text-sm font-semibold text-cloudera-navy">
+                            Nobody owns this property. Buy it for £{activeChoice.price}, or pass?
+                          </p>
+                        </div>
+                        {!activeChoice.canAfford && (
+                          <p className="mt-2 text-xs font-semibold text-red-700">
+                            You do not have enough to buy this property right now.
+                          </p>
+                        )}
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            disabled={!!checkingIn || !activeChoice.canAfford}
+                            onClick={() =>
+                              void performCheckIn(loc.id, {
+                                selfie: activeChoice.file,
+                                decision: "buy",
+                              })
+                            }
+                            className="btn-primary rounded-xl py-2.5 text-sm disabled:opacity-60"
+                          >
+                            {checkingIn === loc.id ? "Working…" : `Buy £${activeChoice.price}`}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!!checkingIn}
+                            onClick={() =>
+                              void performCheckIn(loc.id, {
+                                selfie: activeChoice.file,
+                                decision: "pass",
+                              })
+                            }
+                            className="btn-secondary rounded-xl py-2.5 text-sm disabled:opacity-60"
+                          >
+                            Pass
+                          </button>
+                        </div>
+                        <label
+                          htmlFor="team-selfie-capture"
+                          className="mt-2 block cursor-pointer text-center text-xs font-semibold text-cloudera-orange-dark underline"
+                          onClick={() => armSelfieForLocation(loc.id)}
+                        >
+                          Retake selfie
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </li>
               );
             })}
@@ -441,19 +542,18 @@ export default function TeamAppPage() {
         </div>
         {ownedProperties.length === 0 ? (
           <p className="text-sm font-medium text-cloudera-gray">
-            You don&apos;t own any properties yet. Visit an unowned one, take a selfie, and buy your first
-            property.
+            You don&apos;t own any properties yet. Check in at an unowned property and choose Buy.
           </p>
         ) : (
           <ul className="space-y-3">
             {ownedProperties.map((prop) => {
-              const style = COLOR_GROUP_STYLES[prop.colorGroup];
               return (
                 <li
                   key={prop.id}
                   className="rounded-xl border border-cloudera-blue/30 bg-cloudera-blue-soft p-2"
                 >
                   <div className="flex items-center gap-3">
+                    <PropertyColorBar group={prop.colorGroup} />
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={prop.selfiePath}
@@ -468,11 +568,7 @@ export default function TeamAppPage() {
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
-                      <span
-                        className={`rounded px-2 py-0.5 text-[10px] font-medium uppercase text-white ${style?.bg ?? "bg-zinc-500"}`}
-                      >
-                        {style?.label ?? prop.colorGroup}
-                      </span>
+                      <PropertyColorChip group={prop.colorGroup} />
                     </div>
                   </div>
                   {prop.canBuyHotel && game.status === "ACTIVE" && (
@@ -507,7 +603,6 @@ export default function TeamAppPage() {
         </h2>
         <ul className="space-y-2">
           {locations.map((loc) => {
-            const style = COLOR_GROUP_STYLES[loc.colorGroup];
             const isMine = loc.ownedByYou;
             return (
               <li
@@ -525,6 +620,7 @@ export default function TeamAppPage() {
                   className="flex min-w-0 flex-1 items-center gap-3 text-left"
                   onClick={() => openLandmarkPreview(loc)}
                 >
+                  <PropertyColorBar group={loc.colorGroup} />
                   <LandmarkPhoto
                     name={loc.name}
                     imageUrl={landmarkImageProxyUrl(loc.id, loc.photoRev)}
@@ -532,6 +628,7 @@ export default function TeamAppPage() {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-cloudera-navy">{loc.name}</p>
+                    <PropertyColorChip group={loc.colorGroup} className="mb-0.5" />
                     <p className="text-xs font-medium text-cloudera-gray">
                       Price £{loc.price} · Rent £{loc.rentDue}
                       {loc.hasHotel ? " · Hotel" : ""}
@@ -541,7 +638,9 @@ export default function TeamAppPage() {
                         ? "Checked in"
                         : isMine
                           ? "Owned"
-                          : "Unowned"}
+                          : loc.passedBefore
+                            ? "Passed"
+                            : "Unowned"}
                       {loc.distanceM != null && ` · ${loc.distanceM}m`}
                     </p>
                   </div>
@@ -556,6 +655,8 @@ export default function TeamAppPage() {
           })}
         </ul>
       </section>
+
+      {outcome && <CheckInOutcome outcome={outcome} onClose={() => setOutcome(null)} />}
 
       {photoPreview && (
         <LandmarkPhotoPreviewModal

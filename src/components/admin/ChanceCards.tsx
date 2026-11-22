@@ -2,6 +2,7 @@
 
 import type { AdminChanceCard } from "@/lib/chance-types";
 import { pickChanceSuggestions } from "@/lib/chance-suggestions";
+import { PhotoLightbox, type LightboxItem } from "@/components/admin/PhotoLightbox";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type TeamRef = { id: string; name: string };
@@ -197,6 +198,7 @@ export function ChanceCardInbox({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [photo, setPhoto] = useState<LightboxItem | null>(null);
 
   useEffect(() => {
     const tick = window.setInterval(() => setNow(Date.now()), 1000);
@@ -245,8 +247,21 @@ export function ChanceCardInbox({
           <ul className="mt-3 space-y-3">
             {pending.map((item) => (
               <li key={item.id} className="flex flex-col gap-3 rounded-xl bg-white p-3 sm:flex-row">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.selfiePath} alt={`Photo from ${item.teamName}`} className="h-40 w-full rounded-lg object-cover sm:w-40" />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPhoto({
+                      src: item.selfiePath,
+                      title: item.activity,
+                      subtitle: `${item.teamName} · £${item.reward} if approved`,
+                    })
+                  }
+                  className="shrink-0 overflow-hidden rounded-lg"
+                  aria-label={`View ${item.teamName}'s photo larger`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.selfiePath} alt={`Photo from ${item.teamName}`} className="h-40 w-full object-cover sm:w-40" />
+                </button>
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-cloudera-navy">{item.teamName}</p>
                   <p className="text-sm text-cloudera-gray">{item.activity}</p>
@@ -298,10 +313,27 @@ export function ChanceCardInbox({
                         : submission.status === "APPROVED"
                           ? "paid"
                           : "rejected";
+                    const chip = `${team.name}: ${label}${!submission && !open ? " (missed)" : ""}`;
                     return (
-                      <li key={team.id} className="rounded-full bg-cloudera-muted px-2 py-1 text-cloudera-navy">
-                        {team.name}: {label}
-                        {!submission && !open ? " (missed)" : ""}
+                      <li key={team.id}>
+                        {submission?.selfiePath ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPhoto({
+                                src: submission.selfiePath,
+                                title: card.activity,
+                                subtitle: `${team.name} · ${label} · £${card.reward}`,
+                              })
+                            }
+                            className="rounded-full bg-cloudera-blue-soft px-2 py-1 text-cloudera-navy underline decoration-dotted hover:bg-cloudera-orange-soft"
+                            aria-label={`${chip}. View photo`}
+                          >
+                            {chip} · view photo
+                          </button>
+                        ) : (
+                          <span className="rounded-full bg-cloudera-muted px-2 py-1 text-cloudera-navy">{chip}</span>
+                        )}
                       </li>
                     );
                   })}
@@ -311,6 +343,7 @@ export function ChanceCardInbox({
           })}
         </ul>
       </div>
+      {photo && <PhotoLightbox items={[photo]} index={0} onIndex={() => undefined} onClose={() => setPhoto(null)} />}
     </section>
   );
 }

@@ -173,6 +173,17 @@ export function RunMap({
                     <p className="text-xs text-slate-600">{label}</p>
                     {p.price != null && <p className="text-xs">Price £{p.price}</p>}
                     {p.rent != null && <p className="text-xs">Rent £{p.rent}</p>}
+                    {p.selfiePath && (
+                      <a href={p.selfiePath} target="_blank" rel="noreferrer" className="mt-1 block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={p.selfiePath}
+                          alt={`${p.ownerName ?? "Team"} selfie at ${p.name}`}
+                          className="h-28 w-40 rounded-md object-cover"
+                        />
+                        <span className="text-xs font-semibold text-blue-700 underline">Open larger</span>
+                      </a>
+                    )}
                     <p className="text-xs">
                       {p.ownerName
                         ? `Owned by ${p.ownerName}`
