@@ -1,31 +1,30 @@
 import { ClouderaLogo } from "@/components/brand/ClouderaLogo";
-import { RulesPageFooter } from "@/components/RulesPageFooter";
-import { BOARD_SET_CONFIG } from "@/lib/board-sets";
+import { getTeamSession } from "@/lib/auth";
 import { MISSED_VISIT_RENT_MULTIPLIER, RENT_PRICE_RATIO } from "@/lib/property-economics";
+import Link from "next/link";
 
 const rentPercent = Math.round(RENT_PRICE_RATIO * 100);
 const missedMultiplier = MISSED_VISIT_RENT_MULTIPLIER;
 
-export default function RulesPage() {
+export default async function RulesPage() {
+  const teamSession = await getTeamSession();
+
   return (
     <main className="mx-auto min-h-screen max-w-lg bg-white px-4 py-8 pb-16">
       <ClouderaLogo href="/" size="sm" />
       <h1 className="mt-6 text-2xl font-bold text-cloudera-navy">Monopoly Run — rules</h1>
       <p className="mt-2 text-sm text-cloudera-gray">
-        Monopoly Run is a GPS team game played at real landmarks. Preview the reference photos, check in at each property,
-        buy with a selfie when one is needed, pay rent, and build hotels. The manager runs the board from
-        the manager console.
+        Monopoly Run is a GPS team game played at real landmarks. Preview the reference photos, check in at each
+        property with a selfie, buy or pass, pay rent, and build hotels.
       </p>
 
       <section className="mt-8 space-y-6 text-sm leading-relaxed text-cloudera-navy">
         <div>
           <h2 className="text-lg font-bold">Getting started</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>The manager creates teams, adjusts run settings if needed, and starts the run when ready.</li>
-            <li>Team leaders sign in on mobile with their team PIN.</li>
+            <li>Sign in on your phone with your team PIN.</li>
             <li>
-              Allow location access. A check-in works only when your position is at the property, unless the
-              manager has turned on test mode.
+              Allow location access. You can only check in when your GPS shows you at the property.
             </li>
           </ul>
         </div>
@@ -36,7 +35,7 @@ export default function RulesPage() {
             <li>Each property is a real landmark, not a street name.</li>
             <li>
               The board list shows a <strong>reference photo</strong> for each property. Tap the photo or
-              the property row to open a larger version, so the team knows what to look for.
+              the property row to open a larger version, so your team knows what to look for.
             </li>
             <li>
               Every check-in needs a team selfie with the landmark visible behind you, in the same way as
@@ -46,38 +45,6 @@ export default function RulesPage() {
               Each property carries its <strong>colour group</strong> as a coloured band in your lists.
             </li>
           </ul>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-bold">Check-in radius</h2>
-          <p className="mt-2">
-            You must be within the run&apos;s check-in distance of a property. The manager sets that
-            distance in <strong>Run settings</strong>. These are the distances a new game starts with:
-          </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            {(
-              Object.entries(BOARD_SET_CONFIG) as [
-                keyof typeof BOARD_SET_CONFIG,
-                (typeof BOARD_SET_CONFIG)[keyof typeof BOARD_SET_CONFIG],
-              ][]
-            ).map(([id, cfg]) => (
-              <li key={id}>
-                {cfg.label} — {cfg.geofenceRadiusM}m
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-cloudera-gray">
-            A game that is already under way keeps the distance saved for that run.
-          </p>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-bold">Team map</h2>
-          <p className="mt-2">
-            The manager can show or hide the live map in Run settings. When the map is hidden, teams still
-            see the property list, the reference photos, and GPS check-in. In test mode the map stays
-            visible, and a team can tap it to set their position instead of using GPS.
-          </p>
         </div>
 
         <div>
@@ -125,12 +92,12 @@ export default function RulesPage() {
         <div>
           <h2 className="text-lg font-bold">Chance cards</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>The manager can send a Chance card to every team at any time during the run.</li>
+            <li>A Chance card can arrive for every team at any time during the run.</li>
             <li>Each card has an activity, a reward, and a time limit.</li>
             <li>
               Send a photo of the activity before the time runs out. The reward is added only after the
-              manager approves the photo. A paid card stays on your page, under your properties, without
-              the timer.
+              photo has been checked and accepted. A paid card stays on your page, under your properties,
+              without the timer.
             </li>
           </ul>
         </div>
@@ -139,7 +106,6 @@ export default function RulesPage() {
           <h2 className="text-lg font-bold">Ending the run</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>The run does not end automatically when every property is sold.</li>
-            <li>The manager ends the run from the manager console.</li>
             <li>
               When the run ends, each team pays{" "}
               <strong>{missedMultiplier}× the base rent</strong> to the bank for every property they did not
@@ -147,24 +113,29 @@ export default function RulesPage() {
             </li>
           </ul>
         </div>
-
-        <div>
-          <h2 className="text-lg font-bold">Manager console</h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Create teams, start and end the run, send Chance cards, and view the live map and leaderboard.</li>
-            <li>
-              <strong>Run settings</strong> — check-in distance, whether teams see the map, and test mode.
-            </li>
-            <li>
-              <strong>Properties</strong> — rename properties, move their pin on the map, change their
-              reference photo, and add or delete properties on any board. Changes reach teams straight
-              away, so fix positions before the run where possible.
-            </li>
-          </ul>
-        </div>
       </section>
 
-      <RulesPageFooter />
+      <div className="mt-10 flex flex-col gap-3">
+        {teamSession ? (
+          <Link href="/team" className="btn-primary rounded-xl py-3 text-center text-sm font-semibold">
+            Back to team board
+          </Link>
+        ) : (
+          <Link href="/team/login" className="btn-primary rounded-xl py-3 text-center text-sm font-semibold">
+            Team login
+          </Link>
+        )}
+        <Link
+          href="/"
+          className={
+            teamSession
+              ? "btn-secondary rounded-xl py-3 text-center text-sm font-semibold"
+              : "text-center text-sm font-medium text-cloudera-gray underline"
+          }
+        >
+          Back to home
+        </Link>
+      </div>
     </main>
   );
 }
